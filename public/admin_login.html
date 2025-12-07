@@ -4,139 +4,138 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staff Login - Grey Sloan Memorial Hospital</title>
-    
+
     <!-- Google Fonts - Lato -->
     <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
-    
+
     <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <!-- CSS Files -->
     <link rel="stylesheet" href="css/common.css">
     <link rel="stylesheet" href="css/login.css">
 </head>
 <body>
-    <div class="login-page">
-        <div class="login-container">
-            <!-- Hero Section -->
-            <div class="login-hero">
-                <div class="login-hero-content">
-                    <div class="login-logo">
-                        <i class="fas fa-user-md login-logo-icon"></i>
-                        <div class="login-logo-text">Grey Sloan Memorial</div>
-                    </div>
-                    
-                    <h1 class="login-hero-title">Staff Portal Login</h1>
-                    <p class="login-hero-subtitle">
-                        Secure access to the emergency triage management system 
-                        for authorized hospital staff and administrators.
-                    </p>
-                    
-                    <div class="login-features">
-                        <div class="login-feature">
-                            <i class="fas fa-lock"></i>
-                            <p>HIPAA-compliant secure authentication system</p>
-                        </div>
-                        <div class="login-feature">
-                            <i class="fas fa-users-cog"></i>
-                            <p>Role-based access control for different staff levels</p>
-                        </div>
-                        <div class="login-feature">
-                            <i class="fas fa-chart-line"></i>
-                            <p>Real-time patient monitoring and priority management</p>
-                        </div>
-                    </div>
-                    
-                    <div class="emergency-access">
-                        <p>Immediate emergency protocol activation?</p>
-                        <a href="#" id="emergencyProtocolLink">
-                            <i class="fas fa-exclamation-triangle"></i> Activate Emergency Protocol
-                        </a>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Login Form -->
-            <div class="login-form-section">
-                <div class="login-form-header">
-                    <h2 class="login-form-title">Staff Authentication</h2>
-                    <p class="login-form-subtitle">Restricted access for authorized personnel only</p>
-                </div>
-                
-                <!-- Error Message -->
-                <div class="login-error" id="loginError">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span id="errorMessage">Invalid credentials or insufficient permissions.</span>
-                </div>
-                
-                <!-- Loading Spinner -->
-                <div class="login-loading" id="loginLoading">
-                    <div class="loading-spinner"></div>
-                    <p>Verifying credentials...</p>
+<div class="login-page">
+    <div class="login-container">
+        <!-- Hero Section -->
+        <div class="login-hero">
+            <div class="login-hero-content">
+                <div class="login-logo">
+                    <i class="fas fa-user-md login-logo-icon"></i>
+                    <div class="login-logo-text">Grey Sloan Memorial</div>
                 </div>
 
-                <form class="login-form" action="admin.html" method="GET">
-                    <div class="form-input-group">
-                        <label for="staffId">Staff ID / Username</label>
-                        <div class="form-input-wrapper">
-                            <i class="fas fa-id-badge"></i>
-                            <input type="text" 
-                                   id="staffId" 
-                                   name="staffId" 
-                                   placeholder="Enter your staff ID or username" 
-                                   required
-                                   minlength="3"
-                                   maxlength="50">
-                        </div>
-                        <div class="form-hint">Your hospital-issued staff identifier</div>
-                    </div>
-                    
-                    <div class="form-input-group">
-                        <label for="password">Password</label>
-                        <div class="form-input-wrapper">
-                            <i class="fas fa-key"></i>
-                            <input type="password" 
-                                   id="password" 
-                                   name="password" 
-                                   placeholder="Enter your password" 
-                                   required
-                                   minlength="6">
-                        </div>
-                        <div class="form-hint">Minimum 6 characters</div>
-                    </div>
-                    
-                    <div class="form-options">
-                        <div class="remember-me">
-                            <input type="checkbox" id="rememberMe" name="rememberMe">
-                            <label for="rememberMe">Remember this device</label>
-                        </div>
-                        <a href="#" class="forgot-password" id="forgotPasswordLink">Forgot password?</a>
-                    </div>
+                <h1 class="login-hero-title">Staff Portal Login</h1>
+                <p class="login-hero-subtitle">
+                    Secure access to the emergency triage management system
+                    for authorized hospital staff and administrators.
+                </p>
 
-                    <button type="button"
-                            class="login-btn"
-                            onclick="window.location.href='admin.html'">
-                        <i class="fas fa-sign-in-alt"></i> Access Staff Portal
-                    </button>
-                </form>
-                
-                <div class="login-footer">
-                    <p class="security-notice">
-                        <i class="fas fa-shield-alt"></i> This system is monitored. Unauthorized access is prohibited.
-                    </p>
-                    <p class="mt-2">
-                        <a href="index.html"><i class="fas fa-arrow-left"></i> Back to Home </a> | 
-                        <a href="user_login.html"> Patient Login <i class="fas fa-arrow-right"></i></a>
-                    </p>
-                    <p class="mt-1">
-                        &copy; 2024 Grey Sloan Memorial Hospital. All rights reserved.
-                    </p>
+                <div class="login-features">
+                    <div class="login-feature">
+                        <i class="fas fa-lock"></i>
+                        <p>HIPAA-compliant secure authentication system</p>
+                    </div>
+                    <div class="login-feature">
+                        <i class="fas fa-users-cog"></i>
+                        <p>Role-based access control for different staff levels</p>
+                    </div>
+                    <div class="login-feature">
+                        <i class="fas fa-chart-line"></i>
+                        <p>Real-time patient monitoring and priority management</p>
+                    </div>
+                </div>
+
+                <div class="emergency-access">
+                    <p>Immediate emergency protocol activation?</p>
+                    <a href="#" id="emergencyProtocolLink">
+                        <i class="fas fa-exclamation-triangle"></i> Activate Emergency Protocol
+                    </a>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- JavaScript -->
-    <!-- <script src="js/admin_login.js"></script> -->
+        <!-- Login Form -->
+        <div class="login-form-section">
+            <div class="login-form-header">
+                <h2 class="login-form-title">Staff Authentication</h2>
+                <p class="login-form-subtitle">Restricted access for authorized personnel only</p>
+            </div>
+
+            <!-- Error Message -->
+            <div class="login-error" id="loginError">
+                <i class="fas fa-exclamation-circle"></i>
+                <span id="errorMessage">Invalid credentials or insufficient permissions.</span>
+            </div>
+
+            <!-- Loading Spinner -->
+            <div class="login-loading" id="loginLoading">
+                <div class="loading-spinner"></div>
+                <p>Verifying credentials...</p>
+            </div>
+
+            <!-- ✅ NO onsubmit here anymore, JS handles redirect -->
+            <form class="login-form" id="adminLoginForm">
+                <div class="form-input-group">
+                    <label for="staffId">Staff ID / Username</label>
+                    <div class="form-input-wrapper">
+                        <i class="fas fa-id-badge"></i>
+                        <input type="text"
+                               id="staffId"
+                               name="staffId"
+                               placeholder="Enter your staff ID or username"
+                               required
+                               minlength="3"
+                               maxlength="50">
+                    </div>
+                    <div class="form-hint">Your hospital-issued staff identifier</div>
+                </div>
+
+                <div class="form-input-group">
+                    <label for="password">Password</label>
+                    <div class="form-input-wrapper">
+                        <i class="fas fa-key"></i>
+                        <input type="password"
+                               id="password"
+                               name="password"
+                               placeholder="Enter your password"
+                               required
+                               minlength="6">
+                    </div>
+                    <div class="form-hint">Minimum 6 characters</div>
+                </div>
+
+                <div class="form-options">
+                    <div class="remember-me">
+                        <input type="checkbox" id="rememberMe" name="rememberMe">
+                        <label for="rememberMe">Remember this device</label>
+                    </div>
+                    <a href="#" class="forgot-password" id="forgotPasswordLink">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="login-btn" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Access Staff Portal
+                </button>
+            </form>
+
+            <div class="login-footer">
+                <p class="security-notice">
+                    <i class="fas fa-shield-alt"></i> This system is monitored. Unauthorized access is prohibited.
+                </p>
+                <p class="mt-2">
+                    <a href="index.html"><i class="fas fa-arrow-left"></i> Back to Home </a> |
+                    <a href="user_login.html"> Patient Login <i class="fas fa-arrow-right"></i></a>
+                </p>
+                <p class="mt-1">
+                    &copy; 2024 Grey Sloan Memorial Hospital. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script src="js/admin_login.js"></script>
 </body>
 </html>
