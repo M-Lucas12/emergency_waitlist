@@ -1,0 +1,326 @@
+/* ===== ADMIN INTERFACE SPECIFIC STYLES ===== */
+
+/* ===== HEADER & NAVIGATION ===== */
+.admin-header {
+    background-color: var(--white);
+    box-shadow: var(--shadow-light);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.admin-header-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-lg);
+}
+
+.logo-icon-admin {
+    color: var(--critical-red);
+    font-size: 1.8rem;
+}
+
+.admin-stats {
+    display: flex;
+    gap: var(--spacing-md);
+}
+
+.stat-item {
+    text-align: center;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    background-color: var(--table-header-grey);
+    border-radius: var(--border-radius-sm);
+}
+
+.stat-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--critical-red);
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--dark-text);
+}
+
+/* ===== MAIN CONTENT ===== */
+.main-content {
+    flex: 1;
+    padding: var(--spacing-lg);
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+    background-color: #f8f9fa;
+}
+
+/* ===== DASHBOARD LAYOUT ===== */
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}
+
+@media (min-width: 1024px) {
+    .dashboard-container {
+        flex-direction: row;
+    }
+    
+    .waitlist-section {
+        flex: 2;
+    }
+    
+    .patient-detail-section {
+        flex: 1;
+        max-width: 400px;
+    }
+}
+
+/* ===== SECTION CARDS ===== */
+.section-card {
+    background-color: var(--white);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-medium);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-md);
+    border-bottom: 2px solid var(--table-header-grey);
+    padding-bottom: var(--spacing-sm);
+}
+
+.section-title {
+    color: var(--dark-text);
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.section-title i {
+    color: var(--critical-red);
+}
+
+.section-controls {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+/* ===== ADMIN BUTTONS ===== */
+.btn-danger {
+    background-color: var(--critical-red);
+    color: var(--white);
+}
+
+.btn-danger:hover {
+    background-color: #990000;
+}
+
+.btn-warning {
+    background-color: var(--caution-yellow);
+    color: var(--dark-text);
+}
+
+.btn-warning:hover {
+    background-color: #e6c200;
+}
+
+.btn-success {
+    background-color: var(--stable-green);
+    color: var(--white);
+}
+
+.btn-success:hover {
+    background-color: #2fa360;
+}
+
+.btn-primary {
+    background-color: var(--calming-blue);
+    color: var(--white);
+}
+
+.btn-primary:hover {
+    background-color: #3a7ae6;
+}
+
+/* ===== TABLE STYLES ===== */
+.table-container {
+    overflow-x: auto;
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--soft-grey);
+}
+
+.waitlist-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+}
+
+.waitlist-table thead {
+    background-color: var(--table-header-grey);
+}
+
+.waitlist-table th {
+    padding: var(--spacing-sm);
+    text-align: left;
+    font-weight: 700;
+    color: var(--dark-text);
+    border-bottom: 2px solid var(--soft-grey);
+}
+
+.waitlist-table td {
+    padding: var(--spacing-sm);
+    border-bottom: 1px solid var(--soft-grey);
+}
+
+.waitlist-table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.waitlist-table tbody tr:hover {
+    background-color: rgba(230, 238, 248, 0.3);
+}
+
+.waitlist-table tbody tr.selected {
+    background-color: rgba(79, 140, 247, 0.1);
+    border-left: 3px solid var(--calming-blue);
+}
+
+/* ===== WAIT TIME INDICATORS ===== */
+.wait-time-indicator {
+    font-weight: 700;
+}
+
+.wait-time-critical {
+    color: var(--critical-red);
+}
+
+.wait-time-high {
+    color: #ff4444;
+}
+
+.wait-time-medium {
+    color: #b38f00;
+}
+
+.wait-time-low {
+    color: var(--stable-green);
+}
+
+/* ===== ACTION BUTTONS ===== */
+.action-buttons {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.action-buttons .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+}
+
+/* ===== PATIENT DETAIL SECTION ===== */
+.patient-detail-card {
+    position: sticky;
+    top: 100px;
+    max-height: calc(100vh - 150px);
+    overflow-y: auto;
+}
+
+.patient-detail-header {
+    background-color: var(--table-header-grey);
+    padding: var(--spacing-md);
+    border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.patient-detail-body {
+    padding: var(--spacing-md);
+}
+
+.detail-group {
+    margin-bottom: var(--spacing-md);
+}
+
+.detail-label {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.detail-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--dark-text);
+}
+
+.detail-code {
+    font-family: monospace;
+    background-color: var(--soft-grey);
+    padding: 0.5rem;
+    border-radius: var(--border-radius-sm);
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+}
+
+.detail-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-lg);
+}
+
+/* ===== ACTION LOG SECTION ===== */
+.action-log {
+    margin-top: var(--spacing-lg);
+}
+
+.log-entry {
+    padding: var(--spacing-sm);
+    border-left: 3px solid var(--calming-blue);
+    background-color: rgba(230, 238, 248, 0.3);
+    margin-bottom: var(--spacing-xs);
+    border-radius: 0 var(--border-radius-sm) var(--border-radius-sm) 0;
+}
+
+.log-timestamp {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.log-action {
+    font-weight: 700;
+    color: var(--dark-text);
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+@media (max-width: 768px) {
+    .main-content {
+        padding: var(--spacing-md);
+    }
+    
+    .section-card {
+        padding: var(--spacing-md);
+    }
+    
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+    
+    .section-controls {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}

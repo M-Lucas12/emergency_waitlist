@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grey Sloan Memorial - Admin Dashboard</title>
+    
+    <!-- Google Fonts - Lato -->
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+    <!-- Consistent Header -->
+    <header class="main-header admin-header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-hospital-alt logo-icon"></i>
+                <div>
+                    <div class="logo-text">Grey Sloan Memorial</div>
+                    <div class="logo-subtext">Admin Dashboard</div>
+                </div>
+            </a>
+            
+            <nav class="main-nav">
+                <ul class="nav-links">
+                    <li><a href="index.html" class="nav-link"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="admin.html" class="nav-link active"><i class="fas fa-user-md"></i> Dashboard</a></li>
+                    <li><a href="user.html" class="nav-link"><i class="fas fa-user"></i> Patient View</a></li>
+                    <li><a href="about.html" class="nav-link"><i class="fas fa-info-circle"></i> About</a></li>
+                </ul>
+            </nav>
+            
+            <div class="header-buttons">
+                <div class="admin-stats">
+                    <span class="stat-item">
+                        <strong id="totalPatients">12</strong> Patients
+                    </span>
+                </div>
+                <button class="btn btn-danger btn-sm" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+            
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="dashboard-container">
+            <!-- Waitlist Section -->
+            <section class="waitlist-section">
+                <div class="section-card">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-list-ol"></i> Patient Waitlist
+                        </h2>
+                        <div class="section-controls">
+                            <button class="btn btn-primary" id="refreshBtn">
+                                <i class="fas fa-sync-alt"></i> Refresh
+                            </button>
+                            <button class="btn btn-success" id="addPatientBtn">
+                                <i class="fas fa-plus"></i> Add Patient
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="table-container">
+                        <table class="waitlist-table" id="waitlistTable">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Patient Name</th>
+                                    <th>Injury Type</th>
+                                    <th>Pain Level</th>
+                                    <th>Priority</th>
+                                    <th>Wait Time</th>
+                                    <th>Arrival Time</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="waitlistBody">
+                                <!-- Sample patient rows -->
+                                <tr class="selected">
+                                    <td class="detail-code">ABC</td>
+                                    <td>John Smith</td>
+                                    <td>Chest Pain</td>
+                                    <td>8/10</td>
+                                    <td><span class="priority-badge priority-critical">Critical</span></td>
+                                    <td class="wait-time-indicator wait-time-critical">Immediate</td>
+                                    <td>14:30</td>
+                                    <td class="action-buttons">
+                                        <button class="btn btn-sm btn-warning" title="Increase Attention">
+                                            <i class="fas fa-arrow-up"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline" title="Decrease Attention">
+                                            <i class="fas fa-arrow-down"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" title="Remove Patient">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="detail-code">XYZ</td>
+                                    <td>Jane Doe</td>
+                                    <td>Arm Injury</td>
+                                    <td>5/10</td>
+                                    <td><span class="priority-badge priority-medium">Medium</span></td>
+                                    <td class="wait-time-indicator wait-time-medium">30 min</td>
+                                    <td>14:45</td>
+                                    <td class="action-buttons">
+                                        <button class="btn btn-sm btn-warning" title="Increase Attention">
+                                            <i class="fas fa-arrow-up"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline" title="Decrease Attention">
+                                            <i class="fas fa-arrow-down"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" title="Remove Patient">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="detail-code">DEF</td>
+                                    <td>Robert Johnson</td>
+                                    <td>Headache</td>
+                                    <td>3/10</td>
+                                    <td><span class="priority-badge priority-low">Low</span></td>
+                                    <td class="wait-time-indicator wait-time-low">60 min</td>
+                                    <td>15:00</td>
+                                    <td class="action-buttons">
+                                        <button class="btn btn-sm btn-warning" title="Increase Attention">
+                                            <i class="fas fa-arrow-up"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline" title="Decrease Attention">
+                                            <i class="fas fa-arrow-down"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger" title="Remove Patient">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="empty-state" id="emptyState" style="display: none;">
+                        <i class="fas fa-users-slash"></i>
+                        <h3>No Patients in Queue</h3>
+                        <p>Add patients using the "Add Patient" button above</p>
+                    </div>
+                </div>
+                
+                <!-- Action Log -->
+                <div class="section-card action-log">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-history"></i> Action Log
+                        </h2>
+                        <button class="btn btn-sm btn-outline" id="clearLogBtn">
+                            <i class="fas fa-trash"></i> Clear Log
+                        </button>
+                    </div>
+                    
+                    <div id="actionLog">
+                        <div class="log-entry">
+                            <div class="log-timestamp">2024-03-15 14:45:30</div>
+                            <div class="log-action">Increased attention for patient ABC (John Smith)</div>
+                            <div class="log-notes">Changed from Medium to Critical priority</div>
+                        </div>
+                        <div class="log-entry">
+                            <div class="log-timestamp">2024-03-15 14:30:15</div>
+                            <div class="log-action">Patient XYZ (Jane Doe) checked in</div>
+                            <div class="log-notes">Arm injury, pain level 5/10</div>
+                        </div>
+                        <div class="log-entry">
+                            <div class="log-timestamp">2024-03-15 14:15:00</div>
+                            <div class="log-action">Patient ABC (John Smith) checked in</div>
+                            <div class="log-notes">Chest pain, pain level 8/10</div>
+                        </div>
+                    </div>
+                    
+                    <div class="empty-state" id="emptyLog" style="display: none;">
+                        <i class="fas fa-clipboard-list"></i>
+                        <h3>No Actions Logged</h3>
+                        <p>Actions will appear here as you manage patients</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Patient Detail Section -->
+            <section class="patient-detail-section">
+                <div class="section-card patient-detail-card">
+                    <div class="patient-detail-header">
+                        <h3 class="section-title">
+                            <i class="fas fa-user-injured"></i> Patient Details
+                        </h3>
+                        <span class="detail-label">Selected</span>
+                    </div>
+                    
+                    <div class="patient-detail-body" id="patientDetailBody">
+                        <div class="detail-group">
+                            <div class="detail-label">
+                                <i class="fas fa-id-card"></i> Patient Code
+                            </div>
+                            <div class="detail-value detail-code">ABC</div>
+                        </div>
+                        
+                        <div class="detail-group">
+                            <div class="detail-label">
+                                <i class="fas fa-user"></i> Full Name
+                            </div>
+                            <div class="detail-value">John Smith</div>
+                        </div>
+                        
+                        <div class="detail-group">
+                            <div class="detail-label">
+                                <i class="fas fa-user-injured"></i> Injury Type
+                            </div>
+                            <div class="detail-value">Chest Pain</div>
+                        </div>
+                        
+                        <div class="detail-group">
+                            <div class="detail-label">
+                                <i class="fas fa-tachometer-alt"></i> Pain Level
+                            </div>
+                            <div class="detail-value">8/10 <span class="priority-badge priority-critical">Severe</span></div>
+                        </div>
+                        
+                        <div class="detail-group">
+                            <div class="detail-label">
+                                <i class="fas fa-exclamation-triangle"></i> Priority Level
+                            </div>
+                            <div class="detail-value">
+                                <span class="priority-badge priority-critical">Critical</span>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-group">
+                            <div class="detail-label">
+                                <i class="fas fa-clock"></i> Arrival Time
+                            </div>
+                            <div class="detail-value">2024-03-15 14:15:00</div>
+                        </div>
+                        
+                        <div class="detail-group">
+                            <div class="detail-label">
+                                <i class="fas fa-hourglass-half"></i> Estimated Wait
+                            </div>
+                            <div class="detail-value wait-time-indicator wait-time-critical">Immediate</div>
+                        </div>
+                        
+                        <div class="detail-actions">
+                            <button class="btn btn-warning" id="increasePriorityBtn">
+                                <i class="fas fa-arrow-up"></i> Increase Attention
+                            </button>
+                            <button class="btn btn-outline" id="decreasePriorityBtn">
+                                <i class="fas fa-arrow-down"></i> Decrease Attention
+                            </button>
+                            <button class="btn btn-danger" id="removePatientBtn">
+                                <i class="fas fa-trash"></i> Remove Patient
+                            </button>
+                        </div>
+                        
+                        <div class="detail-group">
+                            <div class="detail-label">
+                                <i class="fas fa-sticky-note"></i> Notes
+                            </div>
+                            <textarea class="form-input" placeholder="Add notes about this patient..." rows="3"></textarea>
+                            <button class="btn btn-sm btn-primary mt-1">
+                                <i class="fas fa-save"></i> Save Notes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav">
+        <a href="index.html" class="mobile-nav-item">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="admin.html" class="mobile-nav-item active">
+            <i class="fas fa-user-md"></i>
+            <span>Admin</span>
+        </a>
+        <a href="about.html" class="mobile-nav-item">
+            <i class="fas fa-info-circle"></i>
+            <span>About</span>
+        </a>
+        <a href="#" class="mobile-nav-item" id="mobileLogoutBtn">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </a>
+    </nav>
+
+    <!-- Add Patient Modal -->
+    <div class="modal-overlay" id="addPatientModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Patient</h3>
+                <button class="modal-close" id="closeAddModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addPatientForm">
+                    <div class="form-group">
+                        <label class="detail-label" for="modalPatientName">
+                            <i class="fas fa-user"></i> Full Name
+                        </label>
+                        <input type="text" 
+                               id="modalPatientName" 
+                               class="form-input" 
+                               placeholder="Enter patient full name"
+                               required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="detail-label" for="modalPatientCode">
+                            <i class="fas fa-id-card"></i> 3-Letter Code
+                        </label>
+                        <input type="text" 
+                               id="modalPatientCode" 
+                               class="form-input" 
+                               placeholder="ABC"
+                               required
+                               pattern="[A-Za-z]{3}"
+                               maxlength="3"
+                               style="text-transform: uppercase">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="detail-label" for="modalInjuryType">
+                            <i class="fas fa-user-injured"></i> Injury Type
+                        </label>
+                        <select id="modalInjuryType" class="form-select" required>
+                            <option value="" disabled selected>Select injury type</option>
+                            <option value="head">Head / Concussion</option>
+                            <option value="chest">Chest / Breathing</option>
+                            <option value="abdomen">Abdomen / Stomach</option>
+                            <option value="neck">Neck / Spinal</option>
+                            <option value="back">Back / Spine</option>
+                            <option value="arm">Arm / Upper Limb</option>
+                            <option value="leg">Leg / Lower Limb</option>
+                            <option value="other">Other / General</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="detail-label" for="modalPainLevel">
+                            <i class="fas fa-tachometer-alt"></i> Pain Level (1-10)
+                        </label>
+                        <input type="range" 
+                               id="modalPainLevel" 
+                               min="1" 
+                               max="10" 
+                               value="5"
+                               required
+                               style="width: 100%; margin: 0.5rem 0;">
+                        <div>Selected: <span id="modalPainValue">5</span>/10</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="detail-label" for="modalPriority">
+                            <i class="fas fa-exclamation-triangle"></i> Initial Priority
+                        </label>
+                        <select id="modalPriority" class="form-select">
+                            <option value="low">Low (Green)</option>
+                            <option value="medium" selected>Medium (Yellow)</option>
+                            <option value="high">High (Orange)</option>
+                            <option value="critical">Critical (Red)</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="cancelAddBtn">Cancel</button>
+                <button class="btn btn-success" id="submitAddBtn">Add Patient</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Remove Modal -->
+    <div class="modal-overlay" id="confirmRemoveModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">Remove Patient</h3>
+                <button class="modal-close" id="closeRemoveModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to remove <strong id="removePatientName">John Smith</strong> (<span id="removePatientCode">ABC</span>) from the waitlist?</p>
+                <p class="detail-label mt-2">This action cannot be undone.</p>
+                
+                <div class="form-group mt-3">
+                    <label class="detail-label" for="removeReason">
+                        <i class="fas fa-sticky-note"></i> Reason for Removal (Optional)
+                    </label>
+                    <textarea id="removeReason" 
+                              class="form-input" 
+                              placeholder="E.g., Treated, Discharged, Transferred"
+                              rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-outline" id="cancelRemoveBtn">Cancel</button>
+                <button class="btn btn-danger" id="confirmRemoveBtn">Remove Patient</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Check if admin is logged in
+    const adminSession = JSON.parse(localStorage.getItem('adminSession') || '{}');
+    
+    if (!adminSession.loggedIn) {
+        // Redirect to login page if not logged in
+        window.location.href = 'admin_login.html';
+    }
+    
+    // Set user info in header
+    document.addEventListener('DOMContentLoaded', function() {
+        if (adminSession.staffName) {
+            const userInfo = document.createElement('div');
+            userInfo.className = 'user-info';
+            userInfo.innerHTML = `
+                <i class="fas fa-user-md"></i>
+                <span>${adminSession.staffName} (${adminSession.staffRole})</span>
+            `;
+            document.querySelector('.header-buttons').prepend(userInfo);
+        }
+        
+        // Add logout functionality
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (confirm('Are you sure you want to logout?')) {
+                    localStorage.removeItem('adminSession');
+                    window.location.href = 'admin_login.html';
+                }
+            });
+        }
+        
+        // Mobile logout
+        const mobileLogoutBtn = document.getElementById('mobileLogoutBtn');
+        if (mobileLogoutBtn) {
+            mobileLogoutBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (confirm('Are you sure you want to logout?')) {
+                    localStorage.removeItem('adminSession');
+                    window.location.href = 'admin_login.html';
+                }
+            });
+        }
+        
+        // Pain level slider update
+        const modalPainLevel = document.getElementById('modalPainLevel');
+        const modalPainValue = document.getElementById('modalPainValue');
+        
+        if (modalPainLevel && modalPainValue) {
+            modalPainLevel.addEventListener('input', function() {
+                modalPainValue.textContent = this.value;
+            });
+        }
+    });
+    </script>
+
+    <!-- JavaScript -->
+    <script src="js/admin.js"></script>
+</body>
+</html>

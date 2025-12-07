@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grey Sloan Memorial Hospital - Emergency Triage</title>
+    
+    <!-- Google Fonts - Lato -->
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <!-- Consistent Header -->
+    <header class="main-header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-hospital-alt logo-icon"></i>
+                <div>
+                    <div class="logo-text">Grey Sloan Memorial</div>
+                    <div class="logo-subtext">Hospital & Emergency Center</div>
+                </div>
+            </a>
+            
+            <div class="header-buttons">
+                <a href="user_login.html" class="btn btn-outline btn-sm">
+                    <i class="fas fa-sign-in-alt"></i> Patient Login
+                </a>
+                <a href="admin_login.html" class="btn btn-admin btn-sm">
+                    <i class="fas fa-sign-in-alt"></i> Admin Login
+                </a>
+            </div>
+            
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1 class="hero-title">Your Health, Our Priority</h1>
+                <h2 class="hero-subtitle">Fast & Safe Emergency Triage</h2>
+                <p class="hero-description">
+                    Check-in, track wait times, and get immediate care support.
+                </p>
+                <div class="hero-buttons">
+                    <button class="btn btn-primary btn-large" id="startTriageBtn">
+                        <i class="fas fa-ambulance"></i> Start Emergency Check-In
+                    </button>
+                    <a href="about.html" class="btn btn-secondary btn-sm" id="learnMoreBtn">
+                        <i class="fas fa-info-circle"></i> Learn More
+                    </a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <div class="image-placeholder">
+                    <i class="fas fa-heartbeat"></i>
+                    <p>Emergency Care Available 24/7</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="section-header">
+            <h2 class="section-title">Our Emergency Services</h2>
+            <p class="section-subtitle">Rapid response, expert care when you need it most</p>
+        </div>
+        
+        <div class="features-grid">
+            <!-- Feature 1: Emergency -->
+            <div class="feature-card">
+                <div class="feature-icon emergency">
+                    <i class="fas fa-ambulance"></i>
+                </div>
+                <h3 class="feature-title">Emergency</h3>
+                <p class="feature-description">
+                    We are ready to respond to all your medical needs with our 
+                    Level I Trauma Center and expert emergency team.
+                </p>
+                <ul class="feature-list">
+                    <li><i class="fas fa-check"></i> 24/7 Emergency Care</li>
+                    <li><i class="fas fa-check"></i> Trauma & Critical Care</li>
+                    <li><i class="fas fa-check"></i> Specialized Emergency Teams</li>
+                </ul>
+            </div>
+            
+            <!-- Feature 2: Fast Check-In -->
+            <div class="feature-card">
+                <div class="feature-icon checkin">
+                    <i class="fas fa-clipboard-check"></i>
+                </div>
+                <h3 class="feature-title">Fast Check-In</h3>
+                <p class="feature-description">
+                    Tell us your symptoms and receive an estimated wait time.
+                    Our digital triage system prioritizes care based on urgency.
+                </p>
+                <ul class="feature-list">
+                    <li><i class="fas fa-check"></i> Digital Triage Form</li>
+                    <li><i class="fas fa-check"></i> Real-time Wait Updates</li>
+                    <li><i class="fas fa-check"></i> Priority Assessment</li>
+                </ul>
+            </div>
+            
+            <!-- Feature 3: Online Help -->
+            <div class="feature-card">
+                <div class="feature-icon online">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <h3 class="feature-title">Online Help</h3>
+                <p class="feature-description">
+                    Support & triage information anytime. Get medical guidance 
+                    and track your emergency room journey from anywhere.
+                </p>
+                <ul class="feature-list">
+                    <li><i class="fas fa-check"></i> Virtual Triage Support</li>
+                    <li><i class="fas fa-check"></i> Medical Information</li>
+                    <li><i class="fas fa-check"></i> Progress Tracking</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="stats-container">
+            <div class="stat-item">
+                <div class="stat-value">24/7</div>
+                <div class="stat-label">Emergency Service</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">< 15min</div>
+                <div class="stat-label">Avg. Critical Response</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">98%</div>
+                <div class="stat-label">Patient Satisfaction</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">500+</div>
+                <div class="stat-label">Daily Patients Served</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works">
+        <div class="section-header">
+            <h2 class="section-title">How Our Triage System Works</h2>
+            <p class="section-subtitle">Simple steps to get the care you need</p>
+        </div>
+        
+        <div class="steps-container">
+            <div class="step">
+                <div class="step-number">1</div>
+                <div class="step-content">
+                    <h3>Check In Online</h3>
+                    <p>Complete our digital triage form with your symptoms and information</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">2</div>
+                <div class="step-content">
+                    <h3>Get Priority Assessment</h3>
+                    <p>Our system evaluates your condition and assigns appropriate priority</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">3</div>
+                <div class="step-content">
+                    <h3>Receive Wait Time</h3>
+                    <p>Get an estimated wait time based on current emergency room traffic</p>
+                </div>
+            </div>
+            
+            <div class="step">
+                <div class="step-number">4</div>
+                <div class="step-content">
+                    <h3>Track Your Progress</h3>
+                    <p>Monitor your position in queue and receive updates on wait time</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Login Modal -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-header">
+                <h3 class="modal-title">Select Login Option</h3>
+                <button class="modal-close" id="closeLoginModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="modal-instruction">Please select how you would like to access the system:</p>
+                
+                <div class="login-options-modal">
+                    <button class="login-option-btn patient-option" id="modalPatientBtn">
+                        <div class="option-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div class="option-content">
+                            <h4>Patient Portal</h4>
+                            <p>Submit triage information and track wait times</p>
+                        </div>
+                        <i class="fas fa-chevron-right arrow"></i>
+                    </button>
+                    
+                    <button class="login-option-btn admin-option" id="modalAdminBtn">
+                        <div class="option-icon">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                        <div class="option-content">
+                            <h4>Staff Portal</h4>
+                            <p>Manage patient waitlist and triage operations</p>
+                        </div>
+                        <i class="fas fa-chevron-right arrow"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="cancelLoginBtn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <div class="footer-logo">
+                    <i class="fas fa-hospital-alt"></i>
+                    <h3>Grey Sloan Memorial</h3>
+                </div>
+                <p class="footer-description">
+                    Providing exceptional emergency care with compassion and expertise since 1985.
+                </p>
+                <div class="footer-social">
+                    <a href="#" class="social-icon"><i class="fab fa-facebook"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h4 class="footer-title">Quick Links</h4>
+                <ul class="footer-links">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="about.html">About Us</a></li>
+                    <li><a href="user_login.html">User Portal</a></li>
+                    <li><a href="admin_login.html">Admin Portal</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h4 class="footer-title">Emergency Info</h4>
+                <ul class="footer-info">
+                    <li><i class="fas fa-phone"></i> Emergency: (555) 123-EMER</li>
+                    <li><i class="fas fa-map-marker-alt"></i> 123 Medical Center Dr.</li>
+                    <li><i class="fas fa-clock"></i> Open 24/7, 365 days</li>
+                    <li><i class="fas fa-ambulance"></i> Level I Trauma Center</li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h4 class="footer-title">Need Help?</h4>
+                <p>If this is a life-threatening emergency, please call 911 immediately.</p>
+                <button class="btn btn-outline btn-small" id="emergencyCallBtn">
+                    <i class="fas fa-phone-alt"></i> Call Emergency: 911
+                </button>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p class="copyright">© 2024 Grey Sloan Memorial Hospital. All rights reserved.</p>
+            <div class="footer-legal">
+                <a href="#">Privacy Policy</a>
+                <a href="#">Terms of Service</a>
+                <a href="#">Accessibility</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="js/main.js"></script>
+</body>
+</html>

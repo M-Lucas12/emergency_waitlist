@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Login - Grey Sloan Memorial Hospital</title>
+    
+    <!-- Google Fonts - Lato -->
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/login.css">
+</head>
+<body>
+    <div class="login-page">
+        <div class="login-container">
+            <!-- Hero Section -->
+            <div class="login-hero">
+                <div class="login-hero-content">
+                    <div class="login-logo">
+                        <i class="fas fa-hospital-alt login-logo-icon"></i>
+                        <div class="login-logo-text">Grey Sloan Memorial</div>
+                    </div>
+                    
+                    <h1 class="login-hero-title">Patient Portal Login</h1>
+                    <p class="login-hero-subtitle">
+                        Access your emergency triage information, track wait times, 
+                        and manage your medical visits securely.
+                    </p>
+                    
+                    <div class="login-features">
+                        <div class="login-feature">
+                            <i class="fas fa-shield-alt"></i>
+                            <p>Secure, encrypted login for patient privacy</p>
+                        </div>
+                        <div class="login-feature">
+                            <i class="fas fa-clock"></i>
+                            <p>Real-time wait time updates and queue tracking</p>
+                        </div>
+                        <div class="login-feature">
+                            <i class="fas fa-file-medical"></i>
+                            <p>Access your triage history and medical information</p>
+                        </div>
+                    </div>
+                    
+                    <div class="emergency-access">
+                        <p>Need immediate emergency assistance?</p>
+                        <a href="#" id="emergencyHelpLink">
+                            <i class="fas fa-phone-alt"></i> Call Emergency Services
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Login Form -->
+            <div class="login-form-section">
+                <div class="login-form-header">
+                    <h2 class="login-form-title">Sign In to Your Account</h2>
+                    <p class="login-form-subtitle">Enter your credentials to access the patient portal</p>
+                </div>
+                
+                <!-- Error Message -->
+                <div class="login-error" id="loginError">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="errorMessage">Invalid credentials. Please try again.</span>
+                </div>
+                
+                <!-- Loading Spinner -->
+                <div class="login-loading" id="loginLoading">
+                    <div class="loading-spinner"></div>
+                    <p>Signing you in...</p>
+                </div>
+                
+                <form class="login-form" id="patientLoginForm">
+                    <div class="form-input-group">
+                        <label for="patientCode">Patient Code</label>
+                        <div class="form-input-wrapper">
+                            <i class="fas fa-id-card"></i>
+                            <input type="text" 
+                                   id="patientCode" 
+                                   name="patientCode" 
+                                   placeholder="Enter your 3-letter patient code" 
+                                   required
+                                   pattern="[A-Za-z]{3}"
+                                   title="Please enter exactly 3 letters"
+                                   maxlength="3"
+                                   style="text-transform: uppercase">
+                        </div>
+                        <div class="form-hint">Example: ABC, XYZ (case-insensitive)</div>
+                    </div>
+                    
+                    <div class="form-input-group">
+                        <label for="patientName">Full Name</label>
+                        <div class="form-input-wrapper">
+                            <i class="fas fa-user"></i>
+                            <input type="text" 
+                                   id="patientName" 
+                                   name="patientName" 
+                                   placeholder="Enter your full name as registered" 
+                                   required
+                                   minlength="2"
+                                   maxlength="100">
+                        </div>
+                        <div class="form-hint">Enter your legal first and last name</div>
+                    </div>
+                    
+                    <div class="form-input-group">
+                        <label for="dob">Date of Birth (Optional)</label>
+                        <div class="form-input-wrapper">
+                            <i class="fas fa-calendar-alt"></i>
+                            <input type="date" 
+                                   id="dob" 
+                                   name="dob"
+                                   max="">
+                        </div>
+                        <div class="form-hint">For additional verification</div>
+                    </div>
+                    
+                    <div class="form-options">
+                        <div class="remember-me">
+                            <input type="checkbox" id="rememberMe" name="rememberMe">
+                            <label for="rememberMe">Remember me on this device</label>
+                        </div>
+                        <a href="#" class="forgot-password" id="forgotCodeLink">Forgot your code?</a>
+                    </div>
+                    
+                    <button type="submit" class="login-btn" id="loginBtn">
+                        <i class="fas fa-sign-in-alt"></i> Sign In to Patient Portal
+                    </button>
+                </form>
+                
+                <div class="login-divider">
+                    <span>New Patient?</span>
+                </div>
+                
+                <div class="alternative-login">
+                    <button type="button" class="alt-login-btn" id="quickTriageBtn">
+                        <i class="fas fa-plus-circle"></i> Start Quick Triage
+                    </button>
+                    <button type="button" class="alt-login-btn" id="guestAccessBtn">
+                        <i class="fas fa-user-clock"></i> Continue as Guest
+                    </button>
+                </div>
+                
+                <div class="login-footer">
+                    <p>By signing in, you agree to our <a href="#">Privacy Policy</a> and <a href="#">Terms of Service</a>.</p>
+                    <p class="mt-2">Need help? <a href="about.html">Contact Support</a></p>
+                    <p class="mt-1">
+                        <a href="index.html"><i class="fas fa-arrow-left"></i> Back to Home</a> | 
+                        <a href="admin_login.html">Staff Login <i class="fas fa-arrow-right"></i></a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="js/user_login.js"></script>
+</body>
+</html>

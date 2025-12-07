@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grey Sloan Memorial - Patient Portal</title>
+    
+    <!-- Google Fonts - Lato -->
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="css/common.css">
+    <link rel="stylesheet" href="css/user.css">
+</head>
+<body>
+    <!-- Consistent Header -->
+    <header class="main-header">
+        <div class="header-container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-hospital-alt logo-icon"></i>
+                <div>
+                    <div class="logo-text">Grey Sloan Memorial</div>
+                    <div class="logo-subtext">Patient Portal</div>
+                </div>
+            </a>
+            
+            <div class="header-buttons">
+                <a href="index.html" class="btn btn-outline btn-sm">
+                    <i class="fas fa-arrow-left"></i> Back to Home
+                </a>
+                <button class="btn btn-danger btn-sm" id="logoutBtn">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+            
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="patient-main">
+        <div class="patient-container">
+            <!-- Left Sidebar - Patient Info & Navigation -->
+            <aside class="patient-sidebar">
+                <div class="sidebar-card">
+                    <div class="patient-profile">
+                        <div class="profile-avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div class="profile-info">
+                            <h3 id="patientNameDisplay">Welcome, Patient</h3>
+                            <p class="profile-code" id="patientCodeDisplay">Code: ---</p>
+                            <p class="profile-status status-waiting" id="patientStatus">Status: Not Checked In</p>
+                        </div>
+                    </div>
+                    
+                    <div class="sidebar-nav">
+                        <button class="sidebar-nav-item active" id="triageFormBtn">
+                            <i class="fas fa-clipboard-check"></i>
+                            <span>New Triage</span>
+                        </button>
+                        <button class="sidebar-nav-item" id="waitTimeBtn">
+                            <i class="fas fa-clock"></i>
+                            <span>My Wait Time</span>
+                            <span class="badge" id="waitTimeBadge" style="display: none;">!</span>
+                        </button>
+                        <button class="sidebar-nav-item" id="historyBtn">
+                            <i class="fas fa-history"></i>
+                            <span>History</span>
+                        </button>
+                        <button class="sidebar-nav-item" id="instructionsBtn">
+                            <i class="fas fa-book-medical"></i>
+                            <span>Instructions</span>
+                        </button>
+                        <button class="sidebar-nav-item" id="resourcesBtn">
+                            <i class="fas fa-first-aid"></i>
+                            <span>Resources</span>
+                        </button>
+                    </div>
+                    
+                    <div class="quick-actions">
+                        <h4><i class="fas fa-exclamation-triangle"></i> Emergency Contact</h4>
+                        <div class="quick-actions-grid">
+                            <button class="quick-action-btn" id="call911Btn">
+                                <i class="fas fa-phone"></i>
+                                <span>Call 911 Now</span>
+                            </button>
+                            <button class="quick-action-btn" id="hospitalEmergencyBtn">
+                                <i class="fas fa-hospital"></i>
+                                <span>Hospital ER</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <section class="patient-content">
+                <!-- Current Status Banner -->
+                <div class="status-banner" id="statusBanner" style="display: none;">
+                    <div class="banner-content">
+                        <i class="fas fa-info-circle"></i>
+                        <div>
+                            <h4>Your Current Status</h4>
+                            <p id="bannerMessage">You are currently in the queue</p>
+                        </div>
+                    </div>
+                    <button class="btn btn-small" id="dismissBannerBtn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <!-- Triage Form Section (Default View) -->
+                <div class="content-section active" id="triageFormSection">
+                    <div class="section-header">
+                        <h2 class="section-title">
+                            <i class="fas fa-clipboard-check"></i> Emergency Triage Form
+                        </h2>
+                        <p class="section-subtitle">
+                            Please complete this form to help us assess your condition and provide appropriate care.
+                        </p>
+                    </div>
+                    
+                    <div class="triage-container">
+                        <form id="patientTriageForm" class="triage-form">
+                            <div class="form-section">
+                                <div class="form-section-title">
+                                    <i class="fas fa-user"></i> Patient Information
+                                </div>
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label class="form-label" for="fullName">
+                                            <i class="fas fa-user"></i> Full Name *
+                                        </label>
+                                        <input type="text" 
+                                               id="fullName" 
+                                               class="form-input" 
+                                               placeholder="Enter your full name"
+                                               required
+                                               minlength="2"
+                                               maxlength="100">
+                                        <div class="form-hint">Legal first and last name</div>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label" for="patientCode">
+                                            <i class="fas fa-id-card"></i> 3-Letter Code *
+                                        </label>
+                                        <input type="text" 
+                                               id="patientCode" 
+                                               class="form-input" 
+                                               placeholder="ABC"
+                                               required
+                                               pattern="[A-Za-z]{3}"
+                                               title="Please enter exactly 3 letters"
+                                               maxlength="3"
+                                               style="text-transform: uppercase">
+                                        <div class="form-hint">Enter 3 letters (e.g., ABC, XYZ)</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-section">
+                                <div class="form-section-title">
+                                    <i class="fas fa-user-injured"></i> Medical Information
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="injuryType">
+                                        <i class="fas fa-user-injured"></i> Injury Type / Location *
+                                    </label>
+                                    <select id="injuryType" class="form-select" required>
+                                        <option value="" disabled selected>Select your injury type</option>
+                                        <option value="head">Head / Concussion</option>
+                                        <option value="chest">Chest / Breathing Difficulty</option>
+                                        <option value="abdomen">Abdomen / Stomach Pain</option>
+                                        <option value="neck">Neck / Spinal Injury</option>
+                                        <option value="back">Back / Spine Pain</option>
+                                        <option value="arm">Arm / Upper Limb Injury</option>
+                                        <option value="leg">Leg / Lower Limb Injury</option>
+                                        <option value="burn">Burn / Thermal Injury</option>
+                                        <option value="bleeding">Severe Bleeding</option>
+                                        <option value="allergic">Allergic Reaction</option>
+                                        <option value="other">Other / General Symptoms</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label class="form-label" for="symptoms">
+                                        <i class="fas fa-stethoscope"></i> Additional Symptoms (Optional)
+                                    </label>
+                                    <textarea id="symptoms" 
+                                              class="form-input" 
+                                              placeholder="Describe any additional symptoms, when they started, and any other relevant information..."
+                                              rows="3"></textarea>
+                                    <div class="form-hint">Max 500 characters</div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-section pain-level-section">
+                                <div class="form-section-title">
+                                    <i class="fas fa-tachometer-alt"></i> Pain Assessment
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="painLevel">
+                                        <i class="fas fa-tachometer-alt"></i> Pain Level (1-10) *
+                                    </label>
+                                    <div class="pain-level-visual">
+                                        <div class="pain-scale">
+                                            <div class="pain-scale-labels">
+                                                <span>1 - Minimal</span>
+                                                <span>5 - Moderate</span>
+                                                <span>10 - Severe</span>
+                                            </div>
+                                            <div class="pain-slider-container">
+                                                <div class="pain-track"></div>
+                                                <input type="range" 
+                                                       id="painLevel" 
+                                                       class="pain-slider"
+                                                       min="1" 
+                                                       max="10" 
+                                                       value="5"
+                                                       required>
+                                                <div class="pain-slider-thumb" id="painSliderThumb"></div>
+                                            </div>
+                                        </div>
+                                        <div class="pain-value-display">
+                                            <div class="pain-value-number" id="painValue">5</div>
+                                            <div class="pain-value-label">Current Pain</div>
+                                        </div>
+                                    </div>
+                                    <div class="pain-descriptions">
+                                        <div class="pain-description" data-level="1-3">
+                                            <div class="pain-level-text">Mild</div>
+                                            <div class="pain-level-range">1-3</div>
+                                        </div>
+                                        <div class="pain-description" data-level="4-7">
+                                            <div class="pain-level-text">Moderate</div>
+                                            <div class="pain-level-range">4-7</div>
+                                        </div>
+                                        <div class="pain-description" data-level="8-10">
+                                            <div class="pain-level-text">Severe</div>
+                                            <div class="pain-level-range">8-10</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-section">
+                                <div class="form-section-title">
+                                    <i class="fas fa-exclamation-triangle"></i> Emergency Symptoms Checklist
+                                </div>
+                                <div class="form-group">
+                                    <div class="symptoms-checklist">
+                                        <label class="checkbox-card">
+                                            <input type="checkbox" id="chestPain">
+                                            <div class="checkbox-content">
+                                                <i class="fas fa-heart"></i>
+                                                <div class="checkbox-text">
+                                                    <h5>Chest pain or pressure</h5>
+                                                    <p>Sudden chest discomfort or tightness</p>
+                                                </div>
+                                            </div>
+                                        </label>
+                                        <label class="checkbox-card">
+                                            <input type="checkbox" id="difficultyBreathing">
+                                            <div class="checkbox-content">
+                                                <i class="fas fa-lungs"></i>
+                                                <div class="checkbox-text">
+                                                    <h5>Difficulty breathing</h5>
+                                                    <p>Shortness of breath or choking sensation</p>
+                                                </div>
+                                            </div>
+                                        </label>
+                                        <label class="checkbox-card">
+                                            <input type="checkbox" id="severeBleeding">
+                                            <div class="checkbox-content">
+                                                <i class="fas fa-tint"></i>
+                                                <div class="checkbox-text">
+                                                    <h5>Severe bleeding</h5>
+                                                    <p>Uncontrolled bleeding from any wound</p>
+                                                </div>
+                                            </div>
+                                        </label>
+                                        <label class="checkbox-card">
+                                            <input type="checkbox" id="lossOfConsciousness">
+                                            <div class="checkbox-content">
+                                                <i class="fas fa-brain"></i>
+                                                <div class="checkbox-text">
+                                                    <h5>Loss of consciousness</h5>
+                                                    <p>Fainting, dizziness, or confusion</p>
+                                                </div>
+                                            </div>
+                                        </label>
+                                        <label class="checkbox-card">
+                                            <input type="checkbox" id="severeHeadache">
+                                            <div class="checkbox-content">
+                                                <i class="fas fa-head-side-virus"></i>
+                                                <div class="checkbox-text">
+                                                    <h5>Sudden severe headache</h5>
+                                                    <p>"Worst headache of your life"</p>
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                    <div class="form-hint">Check any symptoms that apply</div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <div class="progress-indicator">
+                                    <span>Form Progress:</span>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" id="progressFill" style="width: 25%"></div>
+                                    </div>
+                                    <span>25%</span>
+                                </div>
+                                <div class="form-buttons">
+                                    <button type="button" class="btn btn-outline" id="clearFormBtn">
+                                        <i class="fas fa-eraser"></i> Clear Form
+                                    </button>
+                                    <button type="submit" class="btn btn-primary" id="submitTriageBtn">
+                                        <i class="fas fa-paper-plane"></i> Submit Triage Form
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Wait Time Section -->
+                <div class="content-section" id="waitTimeSection">
+                    <div class="wait-time-dashboard">
+                        <div class="section-header">
+                            <h2 class="section-title">
+                                <i class="fas fa-clock"></i> My Wait Time & Status
+                            </h2>
+                            <div class="section-actions">
+                                <button class="btn btn-outline btn-small" id="refreshWaitBtn">
+                                    <i class="fas fa-sync-alt"></i> Refresh
+                                </button>
+                                <button class="btn btn-primary btn-small" id="newTriageBtn">
+                                    <i class="fas fa-plus"></i> New Triage
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="wait-time-overview">
+                            <div class="wait-time-card">
+                                <div class="wait-time-header">
+                                    <h3>Estimated Wait Time</h3>
+                                    <div class="priority-badge priority-medium" id="priorityBadge">
+                                        <i class="fas fa-exclamation-circle"></i>
+                                        <span>Medium</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="wait-time-display">
+                                    <div class="wait-time-value" id="waitTimeValue">25</div>
+                                    <div class="wait-time-unit">minutes</div>
+                                </div>
+                                
+                                <div class="queue-position">
+                                    <span>You are position</span>
+                                    <div class="queue-number" id="queuePosition">5</div>
+                                    <span>in the queue</span>
+                                </div>
+                                
+                                <div class="wait-time-details">
+                                    <div class="detail-item">
+                                        <div class="detail-label">
+                                            <i class="fas fa-user"></i> Patient Code
+                                        </div>
+                                        <div class="detail-value code" id="displayPatientCode">ABC</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">
+                                            <i class="fas fa-user-injured"></i> Injury Type
+                                        </div>
+                                        <div class="detail-value" id="displayInjuryType">Chest Pain</div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <div class="detail-label">
+                                            <i class="fas fa-calendar-alt"></i> Check-in Time
+                                        </div>
+                                        <div class="detail-value" id="checkInTime">2:30 PM</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="progress-timeline">
+                            <h4><i class="fas fa-map-marker-alt"></i> Your Progress</h4>
+                            <div class="timeline-steps">
+                                <div class="timeline-step completed">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                    <div class="timeline-label">Checked In</div>
+                                </div>
+                                <div class="timeline-step completed">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-stethoscope"></i>
+                                    </div>
+                                    <div class="timeline-label">Triage</div>
+                                </div>
+                                <div class="timeline-step current">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <div class="timeline-label">Waiting</div>
+                                </div>
+                                <div class="timeline-step">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-user-md"></i>
+                                    </div>
+                                    <div class="timeline-label">Treatment</div>
+                                </div>
+                                <div class="timeline-step">
+                                    <div class="timeline-icon">
+                                        <i class="fas fa-home"></i>
+                                    </div>
+                                    <div class="timeline-label">Discharge</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="action-cards">
+                            <div class="action-card">
+                                <div class="action-card-header">
+                                    <div class="action-card-icon">
+                                        <i class="fas fa-edit"></i>
+                                    </div>
+                                    <h4 class="action-card-title">Update Symptoms</h4>
+                                </div>
+                                <p class="action-card-description">
+                                    If your symptoms have changed, let us know so we can reassess your priority.
+                                </p>
+                                <button class="btn btn-outline" id="updateSymptomsBtn">
+                                    <i class="fas fa-edit"></i> Update Symptoms
+                                </button>
+                            </div>
+                            
+                            <div class="action-card">
+                                <div class="action-card-header">
+                                    <div class="action-card-icon">
+                                        <i class="fas fa-question-circle"></i>
+                                    </div>
+                                    <h4 class="action-card-title">Need Help?</h4>
+                                </div>
+                                <p class="action-card-description">
+                                    Contact our emergency staff if you need immediate assistance.
+                                </p>
+                                <button class="btn btn-primary" id="contactStaffBtn">
+                                    <i class="fas fa-comments"></i> Contact Staff
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- History Section -->
+                <div class="content-section" id="historySection">
+                    <div class="history-container">
+                        <div class="section-header">
+                            <h2 class="section-title">
+                                <i class="fas fa-history"></i> My Triage History
+                            </h2>
+                            <p class="section-subtitle">View your previous emergency room visits</p>
+                        </div>
+                        
+                        <div class="history-filters">
+                            <button class="filter-btn active">All Visits</button>
+                            <button class="filter-btn">Last 30 Days</button>
+                            <button class="filter-btn">Last 6 Months</button>
+                            <button class="filter-btn">Last Year</button>
+                        </div>
+                        
+                        <div class="empty-state" id="emptyHistory">
+                            <i class="fas fa-clipboard-list"></i>
+                            <h3>No History Available</h3>
+                            <p>Your triage history will appear here after your first submission</p>
+                        </div>
+                        
+                        <div class="history-list" id="historyList" style="display: none;">
+                            <!-- History items will be dynamically inserted here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instructions Section -->
+                <div class="content-section" id="instructionsSection">
+                    <div class="instructions-container">
+                        <div class="section-header">
+                            <h2 class="section-title">
+                                <i class="fas fa-book-medical"></i> Patient Instructions
+                            </h2>
+                            <p class="section-subtitle">Important information for your emergency visit</p>
+                        </div>
+                        
+                        <div class="instructions-grid">
+                            <div class="instruction-card">
+                                <div class="instruction-icon">
+                                    <i class="fas fa-notes-medical"></i>
+                                </div>
+                                <div class="instruction-content">
+                                    <h4>Before Your Visit</h4>
+                                    <ul>
+                                        <li>Bring your ID and insurance card</li>
+                                        <li>List all medications you're taking</li>
+                                        <li>Note any allergies to medications</li>
+                                        <li>Bring a list of your medical conditions</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="instruction-card">
+                                <div class="instruction-icon">
+                                    <i class="fas fa-procedures"></i>
+                                </div>
+                                <div class="instruction-content">
+                                    <h4>During Your Visit</h4>
+                                    <ul>
+                                        <li>Be honest about your symptoms</li>
+                                        <li>Inform staff of any changes in condition</li>
+                                        <li>Ask questions if you don't understand</li>
+                                        <li>Follow staff instructions carefully</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <div class="instruction-card">
+                                <div class="instruction-icon">
+                                    <i class="fas fa-home"></i>
+                                </div>
+                                <div class="instruction-content">
+                                    <h4>After Your Visit</h4>
+                                    <ul>
+                                        <li>Follow discharge instructions</li>
+                                        <li>Take prescribed medications as directed</li>
+                                        <li>Schedule follow-up appointments</li>
+                                        <li>Return if symptoms worsen</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resources Section -->
+                <div class="content-section" id="resourcesSection">
+                    <div class="resources-container">
+                        <div class="section-header">
+                            <h2 class="section-title">
+                                <i class="fas fa-first-aid"></i> Health Resources
+                            </h2>
+                            <p class="section-subtitle">Helpful information and support services</p>
+                        </div>
+                        
+                        <div class="resources-grid">
+                            <div class="resource-card">
+                                <h4><i class="fas fa-phone-alt"></i> Emergency Contacts</h4>
+                                <ul class="contact-list">
+                                    <li><strong>911:</strong> Life-threatening emergencies</li>
+                                    <li><strong>Poison Control:</strong> 1-800-222-1222</li>
+                                    <li><strong>Crisis Hotline:</strong> 988</li>
+                                    <li><strong>Hospital Main:</strong> (555) 123-4567</li>
+                                </ul>
+                            </div>
+                            
+                            <div class="resource-card">
+                                <h4><i class="fas fa-book"></i> Health Information</h4>
+                                <ul class="resource-list">
+                                    <li><a href="#">Understanding Triage Process</a></li>
+                                    <li><a href="#">Common Emergency Symptoms</a></li>
+                                    <li><a href="#">When to Go to the ER</a></li>
+                                    <li><a href="#">Patient Rights & Responsibilities</a></li>
+                                </ul>
+                            </div>
+                            
+                            <div class="resource-card">
+                                <h4><i class="fas fa-users"></i> Support Services</h4>
+                                <ul class="resource-list">
+                                    <li><a href="#">Patient Advocacy</a></li>
+                                    <li><a href="#">Financial Assistance</a></li>
+                                    <li><a href="#">Translation Services</a></li>
+                                    <li><a href="#">Accessibility Services</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Mobile Navigation -->
+    <nav class="mobile-nav patient-mobile-nav">
+        <a href="index.html" class="mobile-nav-item">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="user.html" class="mobile-nav-item active">
+            <i class="fas fa-user"></i>
+            <span>User Portal</span>
+        </a>
+        <a href="about.html" class="mobile-nav-item">
+            <i class="fas fa-info-circle"></i>
+            <span>About</span>
+        </a>
+        <a href="#" class="mobile-nav-item" id="mobileEmergencyBtn">
+            <i class="fas fa-phone-alt"></i>
+            <span>Emergency</span>
+        </a>
+    </nav>
+
+    <!-- Emergency Help Modal -->
+    <div class="modal-overlay" id="emergencyModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-exclamation-triangle"></i> Emergency Assistance
+                </h3>
+                <button class="modal-close" id="closeEmergencyModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="emergency-alert">
+                    <i class="fas fa-ambulance"></i>
+                    <h4>If this is a life-threatening emergency:</h4>
+                    <p>Call 911 immediately or go to the nearest emergency room.</p>
+                </div>
+                
+                <div class="emergency-contacts">
+                    <h5>Emergency Contacts:</h5>
+                    <div class="contact-item">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <strong>Emergency Medical Services</strong>
+                            <p>911 (Call immediately for life-threatening situations)</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-hospital"></i>
+                        <div>
+                            <strong>Grey Sloan Memorial ER</strong>
+                            <p>(555) 123-EMER (3637)</p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div>
+                            <strong>Hospital Address</strong>
+                            <p>123 Medical Center Drive, Seattle, WA 98101</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="emergency-checklist">
+                    <h5>Before calling 911:</h5>
+                    <ul>
+                        <li>Check if the person is breathing</li>
+                        <li>Note the exact location (address, landmarks)</li>
+                        <li>Describe the emergency clearly</li>
+                        <li>Stay on the line until help arrives</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="cancelEmergencyBtn">Cancel</button>
+                <button class="btn btn-danger" id="call911ModalBtn">
+                    <i class="fas fa-phone"></i> Call 911 Now
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Symptoms Update Modal -->
+    <div class="modal-overlay" id="symptomsModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title">
+                    <i class="fas fa-edit"></i> Update Symptoms
+                </h3>
+                <button class="modal-close" id="closeSymptomsModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Please update your current symptoms so we can reassess your priority.</p>
+                
+                <div class="form-group">
+                    <label class="form-label" for="updatedPainLevel">
+                        <i class="fas fa-tachometer-alt"></i> Current Pain Level
+                    </label>
+                    <input type="range" 
+                           id="updatedPainLevel" 
+                           class="pain-slider"
+                           min="1" 
+                           max="10" 
+                           value="5">
+                    <div class="pain-level-display">
+                        <span id="updatedPainValue">5</span>/10
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="updatedSymptoms">
+                        <i class="fas fa-stethoscope"></i> Symptom Changes
+                    </label>
+                    <textarea id="updatedSymptoms" 
+                              class="form-input" 
+                              placeholder="Describe any changes in your symptoms..."
+                              rows="3"></textarea>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-exclamation-triangle"></i> New Emergency Symptoms
+                    </label>
+                    <div class="checklist-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="updatedChestPain">
+                            <span>Chest pain or pressure</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="updatedDifficultyBreathing">
+                            <span>Difficulty breathing</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="updatedSevereBleeding">
+                            <span>Severe bleeding</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="cancelSymptomsBtn">Cancel</button>
+                <button class="btn btn-primary" id="submitSymptomsBtn">Update Symptoms</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // Check if patient is logged in
+    const patientSession = JSON.parse(localStorage.getItem('patientSession') || '{}');
+    const guestSession = JSON.parse(localStorage.getItem('guestSession') || '{}');
+    
+    if (!patientSession.loggedIn && !guestSession.isGuest) {
+        // Redirect to login page if not logged in and not a guest
+        window.location.href = 'user_login.html';
+    }
+    
+    // If guest, show limited functionality
+    if (guestSession.isGuest) {
+        document.addEventListener('DOMContentLoaded', function() {
+            const restrictedElements = document.querySelectorAll('.restricted');
+            restrictedElements.forEach(el => {
+                el.style.opacity = '0.5';
+                el.style.pointerEvents = 'none';
+                el.title = 'Available only to registered patients';
+            });
+            
+            // Show guest banner
+            const guestBanner = document.createElement('div');
+            guestBanner.className = 'guest-banner';
+            guestBanner.innerHTML = `
+                <i class="fas fa-info-circle"></i>
+                <span>You are browsing as a guest. <a href="user_login.html">Sign in</a> for full access.</span>
+            `;
+            document.body.insertBefore(guestBanner, document.body.firstChild);
+        });
+    }
+    
+    // Logout functionality
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+        if (confirm('Are you sure you want to logout?')) {
+            localStorage.removeItem('patientSession');
+            localStorage.removeItem('guestSession');
+            window.location.href = 'user_login.html';
+        }
+    });
+    </script>
+
+    <!-- JavaScript -->
+    <script src="js/user.js"></script>
+</body>
+</html>
