@@ -74,8 +74,8 @@
                     <div class="loading-spinner"></div>
                     <p>Verifying credentials...</p>
                 </div>
-                
-                <form class="login-form" id="adminLoginForm">
+
+                <form class="login-form" action="admin.html" method="GET">
                     <div class="form-input-group">
                         <label for="staffId">Staff ID / Username</label>
                         <div class="form-input-wrapper">
@@ -112,8 +112,10 @@
                         </div>
                         <a href="#" class="forgot-password" id="forgotPasswordLink">Forgot password?</a>
                     </div>
-                    
-                    <button type="submit" class="login-btn" id="loginBtn">
+
+                    <button type="button"
+                            class="login-btn"
+                            onclick="window.location.href='admin.html'">
                         <i class="fas fa-sign-in-alt"></i> Access Staff Portal
                     </button>
                 </form>
@@ -135,6 +137,6 @@
     </div>
 
     <!-- JavaScript -->
-    <script src="js/admin_login.js"></script>
+    <!-- <script src="js/admin_login.js"></script> -->
 </body>
 </html>
