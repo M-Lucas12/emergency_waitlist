@@ -1,3 +1,4 @@
+<!-- Only showing the changes needed - replace the entire admin.html with this: -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -39,7 +40,7 @@
             <div class="header-buttons">
                 <div class="admin-stats">
                     <span class="stat-item">
-                        <strong id="totalPatients">12</strong> Patients
+                        <strong id="totalPatients">0</strong> Patients
                     </span>
                 </div>
                 <button class="btn btn-danger btn-sm" id="logoutBtn">
@@ -88,72 +89,12 @@
                                 </tr>
                             </thead>
                             <tbody id="waitlistBody">
-                                <!-- Sample patient rows -->
-                                <tr class="selected">
-                                    <td class="detail-code">ABC</td>
-                                    <td>John Smith</td>
-                                    <td>Chest Pain</td>
-                                    <td>8/10</td>
-                                    <td><span class="priority-badge priority-critical">Critical</span></td>
-                                    <td class="wait-time-indicator wait-time-critical">Immediate</td>
-                                    <td>14:30</td>
-                                    <td class="action-buttons">
-                                        <button class="btn btn-sm btn-warning" title="Increase Attention">
-                                            <i class="fas fa-arrow-up"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline" title="Decrease Attention">
-                                            <i class="fas fa-arrow-down"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" title="Remove Patient">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="detail-code">XYZ</td>
-                                    <td>Jane Doe</td>
-                                    <td>Arm Injury</td>
-                                    <td>5/10</td>
-                                    <td><span class="priority-badge priority-medium">Medium</span></td>
-                                    <td class="wait-time-indicator wait-time-medium">30 min</td>
-                                    <td>14:45</td>
-                                    <td class="action-buttons">
-                                        <button class="btn btn-sm btn-warning" title="Increase Attention">
-                                            <i class="fas fa-arrow-up"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline" title="Decrease Attention">
-                                            <i class="fas fa-arrow-down"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" title="Remove Patient">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="detail-code">DEF</td>
-                                    <td>Robert Johnson</td>
-                                    <td>Headache</td>
-                                    <td>3/10</td>
-                                    <td><span class="priority-badge priority-low">Low</span></td>
-                                    <td class="wait-time-indicator wait-time-low">60 min</td>
-                                    <td>15:00</td>
-                                    <td class="action-buttons">
-                                        <button class="btn btn-sm btn-warning" title="Increase Attention">
-                                            <i class="fas fa-arrow-up"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline" title="Decrease Attention">
-                                            <i class="fas fa-arrow-down"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-danger" title="Remove Patient">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </td>
-                                </tr>
+                                <!-- Patient rows will be dynamically inserted here -->
                             </tbody>
                         </table>
                     </div>
                     
-                    <div class="empty-state" id="emptyState" style="display: none;">
+                    <div class="empty-state" id="emptyState">
                         <i class="fas fa-users-slash"></i>
                         <h3>No Patients in Queue</h3>
                         <p>Add patients using the "Add Patient" button above</p>
@@ -172,24 +113,10 @@
                     </div>
                     
                     <div id="actionLog">
-                        <div class="log-entry">
-                            <div class="log-timestamp">2024-03-15 14:45:30</div>
-                            <div class="log-action">Increased attention for patient ABC (John Smith)</div>
-                            <div class="log-notes">Changed from Medium to Critical priority</div>
-                        </div>
-                        <div class="log-entry">
-                            <div class="log-timestamp">2024-03-15 14:30:15</div>
-                            <div class="log-action">Patient XYZ (Jane Doe) checked in</div>
-                            <div class="log-notes">Arm injury, pain level 5/10</div>
-                        </div>
-                        <div class="log-entry">
-                            <div class="log-timestamp">2024-03-15 14:15:00</div>
-                            <div class="log-action">Patient ABC (John Smith) checked in</div>
-                            <div class="log-notes">Chest pain, pain level 8/10</div>
-                        </div>
+                        <!-- Action log entries will be dynamically inserted here -->
                     </div>
                     
-                    <div class="empty-state" id="emptyLog" style="display: none;">
+                    <div class="empty-state" id="emptyLog">
                         <i class="fas fa-clipboard-list"></i>
                         <h3>No Actions Logged</h3>
                         <p>Actions will appear here as you manage patients</p>
@@ -208,77 +135,10 @@
                     </div>
                     
                     <div class="patient-detail-body" id="patientDetailBody">
-                        <div class="detail-group">
-                            <div class="detail-label">
-                                <i class="fas fa-id-card"></i> Patient Code
-                            </div>
-                            <div class="detail-value detail-code">ABC</div>
-                        </div>
-                        
-                        <div class="detail-group">
-                            <div class="detail-label">
-                                <i class="fas fa-user"></i> Full Name
-                            </div>
-                            <div class="detail-value">John Smith</div>
-                        </div>
-                        
-                        <div class="detail-group">
-                            <div class="detail-label">
-                                <i class="fas fa-user-injured"></i> Injury Type
-                            </div>
-                            <div class="detail-value">Chest Pain</div>
-                        </div>
-                        
-                        <div class="detail-group">
-                            <div class="detail-label">
-                                <i class="fas fa-tachometer-alt"></i> Pain Level
-                            </div>
-                            <div class="detail-value">8/10 <span class="priority-badge priority-critical">Severe</span></div>
-                        </div>
-                        
-                        <div class="detail-group">
-                            <div class="detail-label">
-                                <i class="fas fa-exclamation-triangle"></i> Priority Level
-                            </div>
-                            <div class="detail-value">
-                                <span class="priority-badge priority-critical">Critical</span>
-                            </div>
-                        </div>
-                        
-                        <div class="detail-group">
-                            <div class="detail-label">
-                                <i class="fas fa-clock"></i> Arrival Time
-                            </div>
-                            <div class="detail-value">2024-03-15 14:15:00</div>
-                        </div>
-                        
-                        <div class="detail-group">
-                            <div class="detail-label">
-                                <i class="fas fa-hourglass-half"></i> Estimated Wait
-                            </div>
-                            <div class="detail-value wait-time-indicator wait-time-critical">Immediate</div>
-                        </div>
-                        
-                        <div class="detail-actions">
-                            <button class="btn btn-warning" id="increasePriorityBtn">
-                                <i class="fas fa-arrow-up"></i> Increase Attention
-                            </button>
-                            <button class="btn btn-outline" id="decreasePriorityBtn">
-                                <i class="fas fa-arrow-down"></i> Decrease Attention
-                            </button>
-                            <button class="btn btn-danger" id="removePatientBtn">
-                                <i class="fas fa-trash"></i> Remove Patient
-                            </button>
-                        </div>
-                        
-                        <div class="detail-group">
-                            <div class="detail-label">
-                                <i class="fas fa-sticky-note"></i> Notes
-                            </div>
-                            <textarea class="form-input" placeholder="Add notes about this patient..." rows="3"></textarea>
-                            <button class="btn btn-sm btn-primary mt-1">
-                                <i class="fas fa-save"></i> Save Notes
-                            </button>
+                        <div class="empty-state">
+                            <i class="fas fa-user-circle"></i>
+                            <h3>No Patient Selected</h3>
+                            <p>Select a patient from the waitlist to view details</p>
                         </div>
                     </div>
                 </div>
@@ -317,18 +177,20 @@
                 <form id="addPatientForm">
                     <div class="form-group">
                         <label class="detail-label" for="modalPatientName">
-                            <i class="fas fa-user"></i> Full Name
+                            <i class="fas fa-user"></i> Full Name *
                         </label>
                         <input type="text" 
                                id="modalPatientName" 
                                class="form-input" 
                                placeholder="Enter patient full name"
-                               required>
+                               required
+                               minlength="2">
+                        <div class="form-hint">Minimum 2 characters</div>
                     </div>
                     
                     <div class="form-group">
                         <label class="detail-label" for="modalPatientCode">
-                            <i class="fas fa-id-card"></i> 3-Letter Code
+                            <i class="fas fa-id-card"></i> 3-Letter Code *
                         </label>
                         <input type="text" 
                                id="modalPatientCode" 
@@ -338,28 +200,32 @@
                                pattern="[A-Za-z]{3}"
                                maxlength="3"
                                style="text-transform: uppercase">
+                        <div class="form-hint">Exactly 3 letters (e.g., ABC)</div>
                     </div>
                     
                     <div class="form-group">
                         <label class="detail-label" for="modalInjuryType">
-                            <i class="fas fa-user-injured"></i> Injury Type
+                            <i class="fas fa-user-injured"></i> Injury Type *
                         </label>
                         <select id="modalInjuryType" class="form-select" required>
                             <option value="" disabled selected>Select injury type</option>
-                            <option value="head">Head / Concussion</option>
-                            <option value="chest">Chest / Breathing</option>
-                            <option value="abdomen">Abdomen / Stomach</option>
-                            <option value="neck">Neck / Spinal</option>
-                            <option value="back">Back / Spine</option>
-                            <option value="arm">Arm / Upper Limb</option>
-                            <option value="leg">Leg / Lower Limb</option>
-                            <option value="other">Other / General</option>
+                            <option value="Head / Concussion">Head / Concussion</option>
+                            <option value="Chest / Breathing Difficulty">Chest / Breathing Difficulty</option>
+                            <option value="Abdomen / Stomach Pain">Abdomen / Stomach Pain</option>
+                            <option value="Neck / Spinal Injury">Neck / Spinal Injury</option>
+                            <option value="Back / Spine Pain">Back / Spine Pain</option>
+                            <option value="Arm / Upper Limb Injury">Arm / Upper Limb Injury</option>
+                            <option value="Leg / Lower Limb Injury">Leg / Lower Limb Injury</option>
+                            <option value="Burn / Thermal Injury">Burn / Thermal Injury</option>
+                            <option value="Severe Bleeding">Severe Bleeding</option>
+                            <option value="Allergic Reaction">Allergic Reaction</option>
+                            <option value="Other / General Symptoms">Other / General Symptoms</option>
                         </select>
                     </div>
                     
                     <div class="form-group">
                         <label class="detail-label" for="modalPainLevel">
-                            <i class="fas fa-tachometer-alt"></i> Pain Level (1-10)
+                            <i class="fas fa-tachometer-alt"></i> Pain Level (1-10) *
                         </label>
                         <input type="range" 
                                id="modalPainLevel" 
@@ -369,18 +235,7 @@
                                required
                                style="width: 100%; margin: 0.5rem 0;">
                         <div>Selected: <span id="modalPainValue">5</span>/10</div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="detail-label" for="modalPriority">
-                            <i class="fas fa-exclamation-triangle"></i> Initial Priority
-                        </label>
-                        <select id="modalPriority" class="form-select">
-                            <option value="low">Low (Green)</option>
-                            <option value="medium" selected>Medium (Yellow)</option>
-                            <option value="high">High (Orange)</option>
-                            <option value="critical">Critical (Red)</option>
-                        </select>
+                        <div class="form-hint">1 = Minimal pain, 10 = Severe pain</div>
                     </div>
                 </form>
             </div>
@@ -399,7 +254,7 @@
                 <button class="modal-close" id="closeRemoveModal">&times;</button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to remove <strong id="removePatientName">John Smith</strong> (<span id="removePatientCode">ABC</span>) from the waitlist?</p>
+                <p>Are you sure you want to remove <strong id="removePatientName">[Patient Name]</strong> (<span id="removePatientCode">[Code]</span>) from the waitlist?</p>
                 <p class="detail-label mt-2">This action cannot be undone.</p>
                 
                 <div class="form-group mt-3">
@@ -408,7 +263,7 @@
                     </label>
                     <textarea id="removeReason" 
                               class="form-input" 
-                              placeholder="E.g., Treated, Discharged, Transferred"
+                              placeholder="E.g., Treated, Discharged, Transferred, Left without treatment"
                               rows="3"></textarea>
                 </div>
             </div>
@@ -461,16 +316,6 @@
                     localStorage.removeItem('adminSession');
                     window.location.href = 'admin_login.html';
                 }
-            });
-        }
-        
-        // Pain level slider update
-        const modalPainLevel = document.getElementById('modalPainLevel');
-        const modalPainValue = document.getElementById('modalPainValue');
-        
-        if (modalPainLevel && modalPainValue) {
-            modalPainLevel.addEventListener('input', function() {
-                modalPainValue.textContent = this.value;
             });
         }
     });
