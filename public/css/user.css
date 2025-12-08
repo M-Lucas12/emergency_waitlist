@@ -461,13 +461,13 @@
     left: 0;
     right: 0;
     height: 8px;
-    background: linear-gradient(to right, 
-        var(--stable-green) 0%, 
-        var(--stable-green) 30%, 
-        var(--caution-yellow) 30%, 
-        var(--caution-yellow) 70%, 
-        var(--critical-red) 70%, 
-        var(--critical-red) 100%);
+    background: linear-gradient(to right,
+    var(--stable-green) 0%,
+    var(--stable-green) 30%,
+    var(--caution-yellow) 30%,
+    var(--caution-yellow) 70%,
+    var(--critical-red) 70%,
+    var(--critical-red) 100%);
     border-radius: 4px;
     transform: translateY(-50%);
 }
@@ -563,7 +563,7 @@
 /* ===== SYMPTOMS CHECKLIST ===== */
 .symptoms-checklist {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
     gap: var(--spacing-sm);
 }
 
@@ -585,12 +585,11 @@
 .checkbox-card.selected {
     border-color: var(--calming-blue);
     background: rgba(79, 140, 247, 0.1);
+    box-shadow: var(--shadow-light);
 }
 
-.checkbox-card input {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
+.checkbox-card input[type="checkbox"] {
+    display: none; /* hidden – JS handles toggle + styling */
 }
 
 .checkbox-content {
@@ -1045,12 +1044,12 @@
     .patient-container {
         padding: 0 var(--spacing-md);
     }
-    
+
     .triage-steps {
         flex-direction: column;
         gap: var(--spacing-lg);
     }
-    
+
     .triage-steps::before {
         top: 0;
         bottom: 0;
@@ -1059,35 +1058,35 @@
         width: 2px;
         height: auto;
     }
-    
+
     .step {
         flex-direction: row;
         align-items: center;
         gap: var(--spacing-md);
     }
-    
+
     .step-icon {
         margin-bottom: 0;
     }
-    
+
     .step-label {
         text-align: left;
     }
-    
+
     .form-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .pain-level-visual {
         flex-direction: column;
         gap: var(--spacing-md);
     }
-    
+
     .timeline-steps {
         flex-direction: column;
         gap: var(--spacing-lg);
     }
-    
+
     .timeline-steps::before {
         top: 0;
         bottom: 0;
@@ -1096,18 +1095,18 @@
         width: 2px;
         height: auto;
     }
-    
+
     .timeline-step {
         flex-direction: row;
         align-items: center;
         gap: var(--spacing-md);
     }
-    
+
     .form-actions {
         flex-direction: column;
         gap: var(--spacing-md);
     }
-    
+
     .form-actions .btn {
         width: 100%;
     }
@@ -1117,19 +1116,19 @@
     .section-title {
         font-size: 1.5rem;
     }
-    
+
     .wait-time-value {
         font-size: 2.5rem;
     }
-    
+
     .symptoms-checklist {
         grid-template-columns: 1fr;
     }
-    
+
     .action-cards {
         grid-template-columns: 1fr;
     }
-    
+
     .wait-time-overview {
         grid-template-columns: 1fr;
     }

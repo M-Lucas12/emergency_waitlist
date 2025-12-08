@@ -1,49 +1,49 @@
 // user.js - Patient portal functionality
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Navigation between sections
+    // ===== SIDEBAR NAV: SWITCH BETWEEN SECTIONS =====
     const navButtons = document.querySelectorAll('.sidebar-nav-item');
     const contentSections = document.querySelectorAll('.content-section');
-    
+
     navButtons.forEach(button => {
         button.addEventListener('click', function() {
             const targetId = this.id.replace('Btn', 'Section');
-            
+
             // Update active nav button
             navButtons.forEach(btn => btn.classList.remove('active'));
             this.classList.add('active');
-            
+
             // Show target section
             contentSections.forEach(section => {
                 section.classList.remove('active');
             });
-            
+
             const targetSection = document.getElementById(targetId);
             if (targetSection) {
                 targetSection.classList.add('active');
             }
         });
     });
-    
-    // Pain level slider
+
+    // ===== PAIN LEVEL SLIDER =====
     const painSlider = document.getElementById('painLevel');
     const painValue = document.getElementById('painValue');
     const painSliderThumb = document.getElementById('painSliderThumb');
-    
+
     if (painSlider && painValue && painSliderThumb) {
         function updatePainSlider() {
             const value = painSlider.value;
             painValue.textContent = value;
-            
+
             // Update thumb position
             const percent = ((value - painSlider.min) / (painSlider.max - painSlider.min)) * 100;
             painSliderThumb.style.left = percent + '%';
-            
+
             // Update active pain description
             document.querySelectorAll('.pain-description').forEach(desc => {
                 desc.classList.remove('active');
             });
-            
+
             if (value <= 3) {
                 document.querySelector('.pain-description[data-level="1-3"]').classList.add('active');
             } else if (value <= 7) {
@@ -52,11 +52,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.querySelector('.pain-description[data-level="8-10"]').classList.add('active');
             }
         }
-        
+
         painSlider.addEventListener('input', updatePainSlider);
         updatePainSlider(); // Initialize
-        
-        // Click on pain descriptions
+
+        // Clicking on the labels sets an average value
         document.querySelectorAll('.pain-description').forEach(desc => {
             desc.addEventListener('click', function() {
                 const range = this.dataset.level.split('-');
@@ -66,13 +66,23 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
-    
-    // Form submission
+
+    // Small helper to convert our internal priority key -> display string used by admin
+    function displayPriorityFromKey(key) {
+        switch (key) {
+            case 'critical': return 'Critical';
+            case 'high':     return 'High';
+            case 'medium':   return 'Medium';
+            default:         return 'Low';
+        }
+    }
+
+    // ===== TRIAGE FORM SUBMISSION =====
     const triageForm = document.getElementById('patientTriageForm');
     if (triageForm) {
         triageForm.addEventListener('submit', function(e) {
             e.preventDefault();
-            
+
             // Get form data
             const formData = {
                 name: document.getElementById('fullName').value,
@@ -88,66 +98,86 @@ document.addEventListener('DOMContentLoaded', function() {
                     severeHeadache: document.getElementById('severeHeadache').checked
                 }
             };
-            
+
             // Calculate priority based on pain level and emergency symptoms
             let priority = 'low';
             let estimatedWait = 60; // minutes
-            
-            if (formData.painLevel >= 8 || 
-                formData.emergencySymptoms.chestPain || 
+
+            if (formData.painLevel >= 8 ||
+                formData.emergencySymptoms.chestPain ||
                 formData.emergencySymptoms.difficultyBreathing ||
                 formData.emergencySymptoms.severeBleeding) {
                 priority = 'critical';
                 estimatedWait = 0;
-            } else if (formData.painLevel >= 5 || 
-                      formData.emergencySymptoms.lossOfConsciousness ||
-                      formData.emergencySymptoms.severeHeadache) {
+            } else if (formData.painLevel >= 5 ||
+                formData.emergencySymptoms.lossOfConsciousness ||
+                formData.emergencySymptoms.severeHeadache) {
                 priority = 'high';
                 estimatedWait = 15;
             } else if (formData.painLevel >= 3) {
                 priority = 'medium';
                 estimatedWait = 30;
             }
-            
-            // Save to localStorage (simulating database)
+
+            const now = new Date();
+            const arrivalIso = now.toISOString(); // for patient view
+            const arrivalDisplay = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); // for admin table
+
             const patientData = {
                 ...formData,
-                priority: priority,
-                estimatedWait: estimatedWait,
-                arrivalTime: new Date().toISOString(),
+                priority,           // internal key: low/medium/high/critical
+                estimatedWait,
+                arrivalTime: arrivalIso,
                 status: 'waiting'
             };
-            
-            // Save patient data
+
+            // ---------- BRIDGE TO ADMIN: save into triageSubmissions ----------
+            const triageEntry = {
+                code: formData.code,
+                name: formData.name,
+                injury: formData.injuryType,
+                painLevel: formData.painLevel,
+                priority: displayPriorityFromKey(priority), // "Critical", "High", etc.
+                arrivalTime: arrivalDisplay                  // admin shows this directly
+            };
+
+            const STORAGE_KEY = 'triageSubmissions';
+            const queue = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            queue.push(triageEntry);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
+            // ---------------------------------------------------------------
+
+            // Save to localStorage (simulate DB) – for the patient view
             localStorage.setItem('currentPatient', JSON.stringify(patientData));
-            
+
             // Update patient session
             localStorage.setItem('patientSession', JSON.stringify({
                 loggedIn: true,
                 patientCode: formData.code,
                 patientName: formData.name
             }));
-            
-            // Show success message and switch to wait time view
+
             alert('Triage form submitted successfully! Your priority level is: ' + priority);
-            
-            // Update display
+
+            // Update sidebar info
             document.getElementById('patientNameDisplay').textContent = 'Welcome, ' + formData.name;
             document.getElementById('patientCodeDisplay').textContent = 'Code: ' + formData.code;
-            document.getElementById('patientStatus').textContent = 'Status: In Queue';
-            document.getElementById('patientStatus').className = 'profile-status status-waiting';
-            
+            const statusEl = document.getElementById('patientStatus');
+            statusEl.textContent = 'Status: In Queue';
+            statusEl.className = 'profile-status status-waiting';
+
             // Switch to wait time section
-            document.getElementById('waitTimeBtn').click();
-            
-            // Update wait time display
+            const waitTimeBtn = document.getElementById('waitTimeBtn');
+            if (waitTimeBtn) waitTimeBtn.click();
+
+            // Update wait time UI
             updateWaitTimeDisplay(patientData);
         });
     }
-    
-    // Clear form button
+
+    // ===== CLEAR FORM BUTTON =====
     const clearFormBtn = document.getElementById('clearFormBtn');
-    if (clearFormBtn) {
+    if (clearFormBtn && triageForm) {
         clearFormBtn.addEventListener('click', function() {
             if (confirm('Clear all form data?')) {
                 triageForm.reset();
@@ -155,67 +185,100 @@ document.addEventListener('DOMContentLoaded', function() {
                     painSlider.value = 5;
                     painValue.textContent = '5';
                 }
+                // un-highlight checklist cards
+                document.querySelectorAll('.checkbox-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
             }
         });
     }
-    
-    // Update wait time display
+
+    // ===== EMERGENCY SYMPTOMS CHECKLIST INTERACTION =====
+    document.querySelectorAll('.checkbox-card').forEach(card => {
+        const checkbox = card.querySelector('input[type="checkbox"]');
+        if (!checkbox) return;
+
+        // If some are pre-checked, sync the style
+        if (checkbox.checked) {
+            card.classList.add('selected');
+        }
+
+        // Rely on the label's native toggle, just update styling on change
+        checkbox.addEventListener('change', function () {
+            card.classList.toggle('selected', checkbox.checked);
+        });
+    });
+
+    // ===== WAIT TIME & PRIORITY DISPLAY =====
     function updateWaitTimeDisplay(patientData) {
         document.getElementById('displayPatientCode').textContent = patientData.code;
-        document.getElementById('displayInjuryType').textContent = 
+        document.getElementById('displayInjuryType').textContent =
             patientData.injuryType.replace(/([A-Z])/g, ' $1').trim();
         document.getElementById('waitTimeValue').textContent = patientData.estimatedWait;
-        
-        // Format arrival time
+
         const arrivalDate = new Date(patientData.arrivalTime);
-        document.getElementById('checkInTime').textContent = 
-            arrivalDate.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-        
-        // Update priority badge
+        document.getElementById('checkInTime').textContent =
+            arrivalDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
         const priorityBadge = document.getElementById('priorityBadge');
         priorityBadge.className = 'priority-badge priority-' + patientData.priority;
-        priorityBadge.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>${patientData.priority.charAt(0).toUpperCase() + patientData.priority.slice(1)}</span>`;
+        priorityBadge.innerHTML =
+            `<i class="fas fa-exclamation-circle"></i><span>${patientData.priority.charAt(0).toUpperCase() + patientData.priority.slice(1)}</span>`;
     }
-    
-    // Load existing patient data if available
+
+    // Load existing patient data if present
     const patientSession = JSON.parse(localStorage.getItem('patientSession') || '{}');
     const currentPatient = JSON.parse(localStorage.getItem('currentPatient') || '{}');
-    
+
     if (patientSession.loggedIn && currentPatient.code) {
         document.getElementById('patientNameDisplay').textContent = 'Welcome, ' + currentPatient.name;
         document.getElementById('patientCodeDisplay').textContent = 'Code: ' + currentPatient.code;
-        document.getElementById('patientStatus').textContent = 'Status: In Queue';
-        document.getElementById('patientStatus').className = 'profile-status status-waiting';
-        
+        const statusEl = document.getElementById('patientStatus');
+        statusEl.textContent = 'Status: In Queue';
+        statusEl.className = 'profile-status status-waiting';
+
         updateWaitTimeDisplay(currentPatient);
     }
-    
-    // Emergency modal functionality
+
+    // ===== STATUS BANNER (USED BY CONTACT STAFF) =====
+    const statusBanner = document.getElementById('statusBanner');
+    const bannerMessage = document.getElementById('bannerMessage');
+    const dismissBannerBtn = document.getElementById('dismissBannerBtn');
+
+    if (dismissBannerBtn && statusBanner) {
+        dismissBannerBtn.addEventListener('click', function() {
+            statusBanner.style.display = 'none';
+        });
+    }
+
+    // ===== EMERGENCY MODAL =====
     const emergencyBtns = document.querySelectorAll('#call911Btn, #mobileEmergencyBtn');
     const emergencyModal = document.getElementById('emergencyModal');
     const closeEmergencyModal = document.getElementById('closeEmergencyModal');
     const cancelEmergencyBtn = document.getElementById('cancelEmergencyBtn');
     const call911ModalBtn = document.getElementById('call911ModalBtn');
-    
+
     emergencyBtns.forEach(btn => {
         btn.addEventListener('click', function() {
-            emergencyModal.classList.add('active');
+            if (emergencyModal) {
+                emergencyModal.classList.add('active');
+            }
         });
     });
-    
-    if (closeEmergencyModal) {
+
+    if (closeEmergencyModal && emergencyModal) {
         closeEmergencyModal.addEventListener('click', function() {
             emergencyModal.classList.remove('active');
         });
     }
-    
-    if (cancelEmergencyBtn) {
+
+    if (cancelEmergencyBtn && emergencyModal) {
         cancelEmergencyBtn.addEventListener('click', function() {
             emergencyModal.classList.remove('active');
         });
     }
-    
-    if (call911ModalBtn) {
+
+    if (call911ModalBtn && emergencyModal) {
         call911ModalBtn.addEventListener('click', function() {
             if (confirm('Call 911 for emergency services?')) {
                 if (/Mobi|Android/i.test(navigator.userAgent)) {
@@ -227,11 +290,143 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
-    // Close modal when clicking outside
+
+    // ===== SYMPTOMS UPDATE MODAL =====
+    const symptomsModal = document.getElementById('symptomsModal');
+    const closeSymptomsModal = document.getElementById('closeSymptomsModal');
+    const cancelSymptomsBtn = document.getElementById('cancelSymptomsBtn');
+    const submitSymptomsBtn = document.getElementById('submitSymptomsBtn');
+    const updatedPainLevel = document.getElementById('updatedPainLevel');
+    const updatedPainValue = document.getElementById('updatedPainValue');
+    const updateSymptomsBtn = document.getElementById('updateSymptomsBtn');
+
+    // Open modal when "Update Symptoms" button is clicked
+    if (updateSymptomsBtn && symptomsModal) {
+        updateSymptomsBtn.addEventListener('click', function() {
+            symptomsModal.classList.add('active');
+        });
+    }
+
+    // Close buttons
+    if (closeSymptomsModal && symptomsModal) {
+        closeSymptomsModal.addEventListener('click', function() {
+            symptomsModal.classList.remove('active');
+        });
+    }
+
+    if (cancelSymptomsBtn && symptomsModal) {
+        cancelSymptomsBtn.addEventListener('click', function() {
+            symptomsModal.classList.remove('active');
+        });
+    }
+
+    // Slider inside modal
+    if (updatedPainLevel && updatedPainValue) {
+        const updateModalSlider = () => {
+            updatedPainValue.textContent = updatedPainLevel.value;
+        };
+        updatedPainLevel.addEventListener('input', updateModalSlider);
+        updateModalSlider();
+    }
+
+    // Submit updated symptoms (simple demo: recalc priority + wait)
+    if (submitSymptomsBtn && symptomsModal) {
+        submitSymptomsBtn.addEventListener('click', function() {
+            const current = JSON.parse(localStorage.getItem('currentPatient') || '{}');
+            if (!current.code) {
+                alert('No active triage record found.');
+                symptomsModal.classList.remove('active');
+                return;
+            }
+
+            const newPain = updatedPainLevel ? parseInt(updatedPainLevel.value) : current.painLevel;
+            const newNotes = document.getElementById('updatedSymptoms')?.value || '';
+
+            // Very simple re-prioritization
+            let priority = current.priority;
+            let estimatedWait = current.estimatedWait;
+
+            if (newPain >= 8) {
+                priority = 'critical';
+                estimatedWait = 0;
+            } else if (newPain >= 5) {
+                priority = 'high';
+                estimatedWait = 15;
+            } else if (newPain >= 3) {
+                priority = 'medium';
+                estimatedWait = 30;
+            } else {
+                priority = 'low';
+                estimatedWait = 45;
+            }
+
+            const updated = {
+                ...current,
+                painLevel: newPain,
+                symptoms: current.symptoms + '\n\n[Update] ' + newNotes,
+                priority,
+                estimatedWait
+            };
+
+            localStorage.setItem('currentPatient', JSON.stringify(updated));
+            updateWaitTimeDisplay(updated);
+
+            alert('Your symptoms have been updated. Your current priority is: ' + priority);
+            symptomsModal.classList.remove('active');
+        });
+    }
+
+    // ===== CONTACT STAFF BUTTON =====
+    const contactStaffBtn = document.getElementById('contactStaffBtn');
+    if (contactStaffBtn) {
+        contactStaffBtn.addEventListener('click', function() {
+            alert('A notification has been sent to the emergency staff. Someone will check on you shortly.');
+            if (statusBanner && bannerMessage) {
+                bannerMessage.textContent = 'Your request for assistance has been sent to the emergency staff.';
+                statusBanner.style.display = 'flex';
+            }
+        });
+    }
+
+    // ===== "NEW TRIAGE" BUTTON ON WAIT TIME CARD =====
+    const newTriageBtn = document.getElementById('newTriageBtn');
+    if (newTriageBtn) {
+        newTriageBtn.addEventListener('click', function() {
+            const triageNavBtn = document.getElementById('triageFormBtn');
+            if (triageNavBtn) {
+                triageNavBtn.click(); // switches section & updates sidebar active state
+            }
+            const triageSection = document.getElementById('triageFormSection');
+            if (triageSection) {
+                triageSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    }
+
+    // ===== REFRESH WAIT TIME (simple re-read from storage) =====
+    const refreshWaitBtn = document.getElementById('refreshWaitBtn');
+    if (refreshWaitBtn) {
+        refreshWaitBtn.addEventListener('click', function() {
+            const latest = JSON.parse(localStorage.getItem('currentPatient') || '{}');
+            if (latest.code) {
+                updateWaitTimeDisplay(latest);
+                alert('Wait time refreshed.');
+            } else {
+                alert('No active triage record found to refresh.');
+            }
+        });
+    }
+
+    // ===== CLOSE MODALS WHEN CLICKING OUTSIDE =====
     window.addEventListener('click', function(e) {
-        if (e.target === emergencyModal) {
+        const emergencyModal = document.getElementById('emergencyModal');
+        const symptomsModal = document.getElementById('symptomsModal');
+
+        if (e.target === emergencyModal && emergencyModal) {
             emergencyModal.classList.remove('active');
+        }
+        if (e.target === symptomsModal && symptomsModal) {
+            symptomsModal.classList.remove('active');
         }
     });
 });

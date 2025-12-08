@@ -1,9 +1,10 @@
-// server.js - Basic Node.js server for the Hospital Triage App
+// server.js - Node.js server for the Hospital Triage App (PostgreSQL version)
 
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const pool = require('./db');     // <-- use PostgreSQL pool
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -14,147 +15,223 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
 
-// In-memory database for demo purposes
-let patients = [];
-let priorities = [
-  { id: 1, level_name: 'Critical', description: 'Immediate attention required', color_code: '#B10000', estimated_wait_time: 0 },
-  { id: 2, level_name: 'High', description: 'Attention within 15 minutes', color_code: '#FF4444', estimated_wait_time: 15 },
-  { id: 3, level_name: 'Medium', description: 'Attention within 30 minutes', color_code: '#FFD700', estimated_wait_time: 30 },
-  { id: 4, level_name: 'Low', description: 'Attention within 60 minutes', color_code: '#3CB371', estimated_wait_time: 60 }
-];
-let actionLogs = [];
+// --- Helpers for priority logic (same rules as before) ---
+function calculatePriorityId(pain_level) {
+    if (pain_level >= 8) return 1;  // Critical
+    if (pain_level >= 5) return 2;  // High
+    if (pain_level >= 3) return 3;  // Medium
+    return 4;                       // Low
+}
 
-// API Routes
+// --- API ROUTES (now using PostgreSQL) ---
 
 // Get all patients
-app.get('/api/patients', (req, res) => {
-  res.json(patients);
+app.get('/api/patients', async (req, res) => {
+    try {
+        const result = await pool.query(`
+      SELECT
+        patient_id,
+        code,
+        name,
+        injury_type,
+        pain_level,
+        arrival_time,
+        priority_id
+      FROM patient
+      ORDER BY arrival_time;
+    `);
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Error fetching patients:', err);
+        res.status(500).json({ error: 'Database error fetching patients' });
+    }
 });
 
 // Add new patient
-app.post('/api/patients', (req, res) => {
-  const { code, name, injury_type, pain_level } = req.body;
-  
-  // Validate required fields
-  if (!code || !name || !injury_type || !pain_level) {
-    return res.status(400).json({ error: 'Missing required fields' });
-  }
-  
-  // Calculate priority based on pain level
-  let priority_id;
-  if (pain_level >= 8) {
-    priority_id = 1; // Critical
-  } else if (pain_level >= 5) {
-    priority_id = 2; // High
-  } else if (pain_level >= 3) {
-    priority_id = 3; // Medium
-  } else {
-    priority_id = 4; // Low
-  }
-  
-  const newPatient = {
-    patient_id: patients.length + 1,
-    code: code.toUpperCase(),
-    name,
-    injury_type,
-    pain_level,
-    arrival_time: new Date().toISOString(),
-    priority_id
-  };
-  
-  patients.push(newPatient);
-  
-  // Log the action
-  const actionLog = {
-    action_id: actionLogs.length + 1,
-    patient_id: newPatient.patient_id,
-    action_type: 'Add Patient',
-    old_priority_id: null,
-    new_priority_id: priority_id,
-    action_timestamp: new Date().toISOString(),
-    notes: 'Patient checked in via triage form'
-  };
-  
-  actionLogs.push(actionLog);
-  
-  res.status(201).json(newPatient);
+app.post('/api/patients', async (req, res) => {
+    try {
+        const { code, name, injury_type, pain_level } = req.body;
+
+        if (!code || !name || !injury_type || pain_level == null) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        const pain = parseInt(pain_level, 10);
+        const priority_id = calculatePriorityId(pain);
+
+        // Insert into patient table
+        const insertPatientQuery = `
+      INSERT INTO patient
+        (code, name, injury_type, pain_level, arrival_time, priority_id)
+      VALUES
+        ($1, $2, $3, $4, NOW(), $5)
+      RETURNING patient_id, code, name, injury_type, pain_level, arrival_time, priority_id;
+    `;
+
+        const patientResult = await pool.query(insertPatientQuery, [
+            code.toUpperCase(),
+            name,
+            injury_type,
+            pain,
+            priority_id
+        ]);
+
+        const newPatient = patientResult.rows[0];
+
+        // Log action in action_logs table
+        const insertLogQuery = `
+      INSERT INTO action_logs
+        (patient_id, action_type, old_priority_id, new_priority_id, action_timestamp, notes)
+      VALUES
+        ($1, 'Add Patient', NULL, $2, NOW(), 'Patient checked in via triage form');
+    `;
+
+        await pool.query(insertLogQuery, [newPatient.patient_id, priority_id]);
+
+        res.status(201).json(newPatient);
+    } catch (err) {
+        console.error('Error adding patient:', err);
+        res.status(500).json({ error: 'Database error adding patient' });
+    }
 });
 
 // Update patient priority
-app.put('/api/patients/:id/priority', (req, res) => {
-  const patientId = parseInt(req.params.id);
-  const { new_priority_id, notes } = req.body;
-  
-  const patient = patients.find(p => p.patient_id === patientId);
-  if (!patient) {
-    return res.status(404).json({ error: 'Patient not found' });
-  }
-  
-  const old_priority_id = patient.priority_id;
-  patient.priority_id = new_priority_id;
-  
-  // Log the action
-  const actionLog = {
-    action_id: actionLogs.length + 1,
-    patient_id: patientId,
-    action_type: 'Change Priority',
-    old_priority_id,
-    new_priority_id,
-    action_timestamp: new Date().toISOString(),
-    notes: notes || 'Priority changed by admin'
-  };
-  
-  actionLogs.push(actionLog);
-  
-  res.json({ message: 'Priority updated successfully', patient, actionLog });
+app.put('/api/patients/:id/priority', async (req, res) => {
+    try {
+        const patientId = parseInt(req.params.id, 10);
+        const { new_priority_id, notes } = req.body;
+
+        // Get current patient
+        const patientResult = await pool.query(
+            'SELECT patient_id, priority_id FROM patient WHERE patient_id = $1',
+            [patientId]
+        );
+
+        if (patientResult.rowCount === 0) {
+            return res.status(404).json({ error: 'Patient not found' });
+        }
+
+        const old_priority_id = patientResult.rows[0].priority_id;
+
+        // Update priority
+        const updateResult = await pool.query(
+            'UPDATE patient SET priority_id = $1 WHERE patient_id = $2 RETURNING *;',
+            [new_priority_id, patientId]
+        );
+
+        const updatedPatient = updateResult.rows[0];
+
+        // Log action
+        const insertLogQuery = `
+      INSERT INTO action_logs
+        (patient_id, action_type, old_priority_id, new_priority_id, action_timestamp, notes)
+      VALUES
+        ($1, 'Change Priority', $2, $3, NOW(), $4);
+    `;
+
+        await pool.query(insertLogQuery, [
+            patientId,
+            old_priority_id,
+            new_priority_id,
+            notes || 'Priority changed by admin'
+        ]);
+
+        res.json({
+            message: 'Priority updated successfully',
+            patient: updatedPatient
+        });
+    } catch (err) {
+        console.error('Error updating priority:', err);
+        res.status(500).json({ error: 'Database error updating priority' });
+    }
 });
 
 // Remove patient
-app.delete('/api/patients/:id', (req, res) => {
-  const patientId = parseInt(req.params.id);
-  const { notes } = req.body;
-  
-  const patientIndex = patients.findIndex(p => p.patient_id === patientId);
-  if (patientIndex === -1) {
-    return res.status(404).json({ error: 'Patient not found' });
-  }
-  
-  const patient = patients[patientIndex];
-  patients.splice(patientIndex, 1);
-  
-  // Log the action
-  const actionLog = {
-    action_id: actionLogs.length + 1,
-    patient_id: patientId,
-    action_type: 'Remove Patient',
-    old_priority_id: patient.priority_id,
-    new_priority_id: null,
-    action_timestamp: new Date().toISOString(),
-    notes: notes || 'Patient removed from waitlist'
-  };
-  
-  actionLogs.push(actionLog);
-  
-  res.json({ message: 'Patient removed successfully', actionLog });
+app.delete('/api/patients/:id', async (req, res) => {
+    try {
+        const patientId = parseInt(req.params.id, 10);
+        const { notes } = req.body;
+
+        // Get patient before deleting
+        const patientResult = await pool.query(
+            'SELECT patient_id, priority_id FROM patient WHERE patient_id = $1',
+            [patientId]
+        );
+
+        if (patientResult.rowCount === 0) {
+            return res.status(404).json({ error: 'Patient not found' });
+        }
+
+        const patient = patientResult.rows[0];
+
+        // Delete from patient table
+        await pool.query('DELETE FROM patient WHERE patient_id = $1', [patientId]);
+
+        // Log removal
+        const insertLogQuery = `
+      INSERT INTO action_logs
+        (patient_id, action_type, old_priority_id, new_priority_id, action_timestamp, notes)
+      VALUES
+        ($1, 'Remove Patient', $2, NULL, NOW(), $3);
+    `;
+
+        await pool.query(insertLogQuery, [
+            patientId,
+            patient.priority_id,
+            notes || 'Patient removed from waitlist'
+        ]);
+
+        res.json({ message: 'Patient removed successfully' });
+    } catch (err) {
+        console.error('Error removing patient:', err);
+        res.status(500).json({ error: 'Database error removing patient' });
+    }
 });
 
-// Get action logs
-app.get('/api/action-logs', (req, res) => {
-  res.json(actionLogs);
+// Get action logs (simple version)
+app.get('/api/action-logs', async (req, res) => {
+    try {
+        const result = await pool.query(`
+      SELECT
+        action_id,
+        patient_id,
+        action_type,
+        old_priority_id,
+        new_priority_id,
+        action_timestamp,
+        notes
+      FROM action_logs
+      ORDER BY action_timestamp DESC;
+    `);
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Error fetching action logs:', err);
+        res.status(500).json({ error: 'Database error fetching action logs' });
+    }
 });
 
 // Get priorities
-app.get('/api/priorities', (req, res) => {
-  res.json(priorities);
+app.get('/api/priorities', async (req, res) => {
+    try {
+        const result = await pool.query(`
+      SELECT priority_id, level_name, description, color_code, estimated_wait_time
+      FROM priorities
+      ORDER BY priority_id;
+    `);
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Error fetching priorities:', err);
+        res.status(500).json({ error: 'Database error fetching priorities' });
+    }
 });
 
-// Serve the main application (always send the React-style index from /public)
+// Serve the main application (always send index from /public)
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, '../public', 'index.html'));
 });
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Access the application at: http://localhost:${PORT}`);
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Access the application at: http://localhost:${PORT}`);
 });
