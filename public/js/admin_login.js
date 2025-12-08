@@ -1,68 +1,68 @@
-// ===== ADMIN LOGIN JAVASCRIPT =====
+// ===== SIMPLE ADMIN LOGIN JAVASCRIPT =====
 
 // ===== DOM ELEMENTS =====
 const adminLoginForm = document.getElementById('adminLoginForm');
 const staffIdInput = document.getElementById('staffId');
 const passwordInput = document.getElementById('password');
-const staffRoleInputs = document.querySelectorAll('input[name="staffRole"]');
 const loginBtn = document.getElementById('loginBtn');
 const loginError = document.getElementById('loginError');
 const errorMessage = document.getElementById('errorMessage');
 const loginLoading = document.getElementById('loginLoading');
 const emergencyProtocolLink = document.getElementById('emergencyProtocolLink');
 const forgotPasswordLink = document.getElementById('forgotPasswordLink');
-const biometricLoginBtn = document.getElementById('biometricLoginBtn');
-const accessCardBtn = document.getElementById('accessCardBtn');
 const rememberMeCheckbox = document.getElementById('rememberMe');
 
-// Mock credentials for demo (in production, this would be server-side)
+// 🔐 Demo credentials (use these to log in)
 const MOCK_CREDENTIALS = {
-    'triage1': { password: 'triage123', role: 'triage', name: 'Nurse Johnson' },
-    'doctor1': { password: 'doctor123', role: 'doctor', name: 'Dr. Smith' },
-    'admin1': { password: 'admin123', role: 'admin', name: 'Admin User' },
-    'staff': { password: 'staff123', role: 'triage', name: 'Staff Member' }
+    admin:  { password: 'password123', role: 'admin', name: 'Dr. Meredith Grey' },
+    doctor: { password: 'doctor123',  role: 'admin', name: 'Dr. Derek Shepherd' },
+    nurse:  { password: 'nurse123',   role: 'admin', name: 'Nurse Miranda Bailey' }
 };
 
 // ===== INITIALIZATION =====
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
     console.log('Admin Login Page Loaded');
-    
-    // Load saved credentials if "Remember me" was checked
+
     loadSavedCredentials();
-    
-    // Setup event listeners
     setupEventListeners();
-    
-    // Check if admin is already logged in
     checkExistingSession();
 });
 
-// ===== EVENT LISTENERS SETUP =====
+// ===== EVENT LISTENERS =====
 function setupEventListeners() {
-    // Form submission
-    adminLoginForm.addEventListener('submit', handleLogin);
-    
-    // Emergency protocol link
-    emergencyProtocolLink.addEventListener('click', handleEmergencyProtocol);
-    
-    // Forgot password link
-    forgotPasswordLink.addEventListener('click', handleForgotPassword);
-    
-    // Biometric login button
-    biometricLoginBtn.addEventListener('click', handleBiometricLogin);
-    
-    // Access card button
-    accessCardBtn.addEventListener('click', handleAccessCardLogin);
-    
-    // Real-time validation
-    staffIdInput.addEventListener('input', validateStaffId);
-    passwordInput.addEventListener('input', validatePassword);
+    if (adminLoginForm) {
+        adminLoginForm.addEventListener('submit', handleLogin);
+    }
+
+    if (emergencyProtocolLink) {
+        emergencyProtocolLink.addEventListener('click', handleEmergencyProtocol);
+    }
+
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', handleForgotPassword);
+    }
+
+    if (staffIdInput) {
+        staffIdInput.addEventListener('input', validateStaffId);
+    }
+
+    if (passwordInput) {
+        passwordInput.addEventListener('input', validatePassword);
+
+        // block Ctrl+C / Ctrl+V / Ctrl+X in password
+        passwordInput.addEventListener('keydown', e => {
+            if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'x')) {
+                e.preventDefault();
+            }
+        });
+    }
 }
 
-// ===== VALIDATION FUNCTIONS =====
+// ===== VALIDATION =====
 function validateStaffId() {
+    if (!staffIdInput) return false;
     const staffId = staffIdInput.value.trim();
-    
+
     if (staffId.length >= 3) {
         staffIdInput.style.borderColor = 'var(--stable-green)';
         return true;
@@ -76,8 +76,9 @@ function validateStaffId() {
 }
 
 function validatePassword() {
+    if (!passwordInput) return false;
     const password = passwordInput.value;
-    
+
     if (password.length >= 6) {
         passwordInput.style.borderColor = 'var(--stable-green)';
         return true;
@@ -90,187 +91,121 @@ function validatePassword() {
     }
 }
 
-// ===== LOGIN HANDLING =====
-async function handleLogin(e) {
+// ===== LOGIN HANDLER =====
+function handleLogin(e) {
     e.preventDefault();
-    
-    // Validate inputs
+
     if (!validateStaffId() || !validatePassword()) {
         showError('Please enter valid credentials');
         return;
     }
-    
+
     const staffId = staffIdInput.value.trim();
     const password = passwordInput.value;
-    const staffRole = document.querySelector('input[name="staffRole"]:checked').value;
-    const rememberMe = rememberMeCheckbox.checked;
-    
-    // Show loading state
+    const rememberMe = rememberMeCheckbox && rememberMeCheckbox.checked;
+    const staffRole = 'admin'; // 🔒 fixed role for now
+
     showLoading(true);
-    
-    // Simulate API call delay
+
+    // Simulate API delay
     setTimeout(() => {
-        // Mock authentication logic
         const authResult = mockAdminAuthentication(staffId, password, staffRole);
-        
+
         if (authResult.success) {
-            // Save session
             saveAdminSession(staffId, authResult.name, staffRole, rememberMe);
-            
-            // Show success message
             showSuccess('Authentication successful! Redirecting to dashboard...');
-            
-            // Redirect to admin portal
+
             setTimeout(() => {
                 window.location.href = 'admin.html';
-            }, 1500);
+            }, 1200);
         } else {
-            // Show error
             showError(authResult.message || 'Invalid credentials. Please try again.');
             showLoading(false);
-            
-            // Log failed attempt (in production, this would be server-side)
             logFailedAttempt(staffId);
         }
-    }, 1500);
+    }, 800);
 }
 
 function mockAdminAuthentication(staffId, password, requestedRole) {
-    // Mock authentication logic
-    // In a real system, this would call a secure API
-    
     const credentials = MOCK_CREDENTIALS[staffId];
-    
+
     if (!credentials) {
-        return {
-            success: false,
-            message: 'Invalid staff ID or password.'
-        };
+        return { success: false, message: 'Invalid staff ID or password.' };
     }
-    
+
     if (credentials.password !== password) {
-        return {
-            success: false,
-            message: 'Invalid staff ID or password.'
-        };
+        return { success: false, message: 'Invalid staff ID or password.' };
     }
-    
-    // Check role permissions
+
     if (requestedRole !== credentials.role) {
-        return {
-            success: false,
-            message: `Insufficient permissions for ${requestedRole} role.`
-        };
+        return { success: false, message: `Insufficient permissions for ${requestedRole} role.` };
     }
-    
-    return {
-        success: true,
-        name: credentials.name,
-        role: credentials.role
-    };
+
+    return { success: true, name: credentials.name, role: credentials.role };
 }
 
-// ===== SESSION MANAGEMENT =====
+// ===== SESSION =====
 function saveAdminSession(staffId, name, role, rememberMe) {
     const sessionData = {
-        staffId: staffId,
+        staffId,
         staffName: name,
         staffRole: role,
         loggedIn: true,
-        loginTime: new Date().toISOString(),
-        sessionId: generateSessionId(),
-        permissions: getRolePermissions(role)
+        loginTime: new Date().toISOString()
     };
-    
-    // Save to localStorage
+
     localStorage.setItem('adminSession', JSON.stringify(sessionData));
-    
-    // Save credentials if "Remember me" is checked
+
     if (rememberMe) {
-        const credentials = {
-            staffId: staffId,
-            rememberMe: true
-        };
-        localStorage.setItem('adminCredentials', JSON.stringify(credentials));
+        localStorage.setItem(
+            'adminCredentials',
+            JSON.stringify({ staffId, rememberMe: true })
+        );
     } else {
         localStorage.removeItem('adminCredentials');
     }
-    
-    // Set session cookie (for demo purposes)
-    document.cookie = `adminSession=${sessionData.sessionId}; path=/; max-age=7200`; // 2 hours for security
 }
 
 function loadSavedCredentials() {
     try {
-        const savedCredentials = JSON.parse(localStorage.getItem('adminCredentials'));
-        
-        if (savedCredentials && savedCredentials.rememberMe) {
-            staffIdInput.value = savedCredentials.staffId || '';
-            rememberMeCheckbox.checked = true;
-            
-            // Validate loaded credentials
+        const saved = JSON.parse(localStorage.getItem('adminCredentials'));
+        if (saved && saved.rememberMe && saved.staffId && staffIdInput) {
+            staffIdInput.value = saved.staffId;
+            if (rememberMeCheckbox) rememberMeCheckbox.checked = true;
             validateStaffId();
         }
-    } catch (error) {
-        console.error('Error loading saved credentials:', error);
+    } catch (e) {
+        console.error('Error loading saved credentials', e);
     }
 }
 
 function checkExistingSession() {
     try {
-        const session = JSON.parse(localStorage.getItem('adminSession'));
-        
+        const session = JSON.parse(localStorage.getItem('adminSession') || '{}');
         if (session && session.loggedIn) {
-            // Check if session is still valid (less than 2 hours old for security)
             const loginTime = new Date(session.loginTime);
-            const currentTime = new Date();
-            const hoursDiff = (currentTime - loginTime) / (1000 * 60 * 60);
-            
+            const now = new Date();
+            const hoursDiff = (now - loginTime) / (1000 * 60 * 60);
+
             if (hoursDiff < 2) {
-                // Auto-redirect to admin portal
+                // already logged in → go straight to dashboard
                 window.location.href = 'admin.html';
             } else {
-                // Session expired
                 localStorage.removeItem('adminSession');
-                showError('Your session has expired. Please log in again.');
             }
         }
-    } catch (error) {
-        console.error('Error checking session:', error);
+    } catch (e) {
+        console.error('Error checking session', e);
     }
 }
 
-function generateSessionId() {
-    return 'admin_session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 12);
-}
-
-// ===== SECURITY FUNCTIONS =====
-function logFailedAttempt(staffId) {
-    // In production, this would be sent to a server
-    console.warn(`Failed login attempt for staff ID: ${staffId}`);
-    
-    // Track failed attempts locally (for demo)
-    const failedAttempts = JSON.parse(localStorage.getItem('failedLoginAttempts') || '{}');
-    failedAttempts[staffId] = (failedAttempts[staffId] || 0) + 1;
-    localStorage.setItem('failedLoginAttempts', JSON.stringify(failedAttempts));
-    
-    // Implement lockout after 5 failed attempts
-    if (failedAttempts[staffId] >= 5) {
-        showError('Too many failed attempts. Account temporarily locked for 15 minutes');
-        // In production, would lock account for 15 minutes
-        setTimeout(() => {
-            delete failedAttempts[staffId];
-            localStorage.setItem('failedLoginAttempts', JSON.stringify(failedAttempts));
-        }, 900000); // 15 minutes
-    }
-}
-
-// ===== UI HELPER FUNCTIONS =====
+// ===== UI HELPERS =====
 function showLoading(show) {
+    if (!loginLoading || !loginBtn) return;
     if (show) {
         loginLoading.classList.add('show');
         loginBtn.disabled = true;
-        loginError.classList.remove('show');
+        if (loginError) loginError.classList.remove('show');
     } else {
         loginLoading.classList.remove('show');
         loginBtn.disabled = false;
@@ -278,28 +213,27 @@ function showLoading(show) {
 }
 
 function showError(message) {
+    if (!loginError || !errorMessage) return;
     errorMessage.textContent = message;
     loginError.classList.add('show');
-    
-    // Auto-hide error after 5 seconds
+
     setTimeout(() => {
         loginError.classList.remove('show');
     }, 5000);
 }
 
 function showSuccess(message) {
-    // Create success message
+    if (!adminLoginForm) return;
+
     const successDiv = document.createElement('div');
     successDiv.className = 'login-error';
-    successDiv.style.backgroundColor = 'rgba(60, 179, 113, 0.1)';
-    successDiv.style.borderColor = 'rgba(60, 179, 113, 0.2)';
+    successDiv.style.backgroundColor = 'rgba(60,179,113,0.1)';
+    successDiv.style.borderColor = 'rgba(60,179,113,0.2)';
     successDiv.style.color = 'var(--stable-green)';
     successDiv.innerHTML = `<i class="fas fa-check-circle"></i> <span>${message}</span>`;
-    
-    // Insert before form
+
     adminLoginForm.parentNode.insertBefore(successDiv, adminLoginForm);
-    
-    // Remove after 3 seconds
+
     setTimeout(() => {
         if (successDiv.parentNode) {
             successDiv.parentNode.removeChild(successDiv);
@@ -307,68 +241,32 @@ function showSuccess(message) {
     }, 3000);
 }
 
-// ===== EVENT HANDLERS =====
+// ===== EXTRA HANDLERS (emergency + forgot pwd) =====
 function handleEmergencyProtocol(e) {
     e.preventDefault();
-    
-    if (confirm('🚨 EMERGENCY PROTOCOL ACTIVATION\n\nThis will trigger hospital-wide emergency procedures.\n\nAre you authorized to activate emergency protocol?')) {
+    if (confirm('🚨 Activate emergency protocol?')) {
         const code = prompt('Enter emergency authorization code:');
-        
         if (code === '911' || code === 'EMER') {
-            alert('Emergency protocol activated. All staff notified.');
-            // In production, would trigger actual emergency procedures
+            alert('Emergency protocol activated (demo).');
         } else {
-            showError('Invalid authorization code. Protocol not activated.');
+            showError('Invalid authorization code.');
         }
     }
 }
 
 function handleForgotPassword(e) {
     e.preventDefault();
-    
     const staffId = prompt('Please enter your Staff ID:');
-    
     if (staffId && staffId.trim()) {
-        showSuccess('If this Staff ID exists, password reset instructions will be sent to the registered email.');
-        
-        // Simulate sending reset email
-        setTimeout(() => {
-            alert('📧 Password reset instructions have been sent to the email associated with this Staff ID.');
-        }, 1000);
+        showSuccess('If this Staff ID exists, reset instructions will be sent.');
     } else if (staffId !== null) {
         showError('Please enter a valid Staff ID.');
     }
 }
 
-// ===== INPUT SECURITY =====
-passwordInput.addEventListener('keydown', function(e) {
-    // Prevent copy/paste in password field for security
-    if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'x')) {
-        e.preventDefault();
-    }
-});
-
-// ===== AUTO-LOGOUT TIMER =====
-let inactivityTimer;
-const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutes in milliseconds
-
-function resetInactivityTimer() {
-    clearTimeout(inactivityTimer);
-    inactivityTimer = setTimeout(logoutDueToInactivity, INACTIVITY_TIMEOUT);
+// ===== FAILED ATTEMPTS TRACKING =====
+function logFailedAttempt(staffId) {
+    const store = JSON.parse(localStorage.getItem('failedLoginAttempts') || '{}');
+    store[staffId] = (store[staffId] || 0) + 1;
+    localStorage.setItem('failedLoginAttempts', JSON.stringify(store));
 }
-
-function logoutDueToInactivity() {
-    if (localStorage.getItem('adminSession')) {
-        localStorage.removeItem('adminSession');
-        showError('Logged out due to inactivity. Please log in again.');
-        resetInactivityTimer();
-    }
-}
-
-// Set up activity listeners
-['mousemove', 'keydown', 'click', 'scroll'].forEach(event => {
-    document.addEventListener(event, resetInactivityTimer);
-});
-
-// Initialize timer
-resetInactivityTimer();

@@ -12,7 +12,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, '../public')));
 
 // In-memory database for demo purposes
 let patients = [];
@@ -148,9 +148,9 @@ app.get('/api/priorities', (req, res) => {
   res.json(priorities);
 });
 
-// Serve the main application
+// Serve the main application (always send the React-style index from /public)
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, '../public', 'index.html'));
 });
 
 // Start server
