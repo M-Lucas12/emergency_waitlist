@@ -23,23 +23,23 @@ function calculatePriorityId(pain_level) {
     return 4;                       // Low
 }
 
-// --- API ROUTES (now using PostgreSQL) ---
+// --- API ROUTES (using PostgreSQL) ---
 
 // Get all patients
 app.get('/api/patients', async (req, res) => {
     try {
         const result = await pool.query(`
-      SELECT
-        patient_id,
-        code,
-        name,
-        injury_type,
-        pain_level,
-        arrival_time,
-        priority_id
-      FROM patient
-      ORDER BY arrival_time;
-    `);
+            SELECT
+                patient_id,
+                code,
+                name,
+                injury_type,
+                pain_level,
+                arrival_time,
+                priority_id
+            FROM patient
+            ORDER BY arrival_time;
+        `);
         res.json(result.rows);
     } catch (err) {
         console.error('Error fetching patients:', err);
@@ -61,12 +61,12 @@ app.post('/api/patients', async (req, res) => {
 
         // Insert into patient table
         const insertPatientQuery = `
-      INSERT INTO patient
-        (code, name, injury_type, pain_level, arrival_time, priority_id)
-      VALUES
-        ($1, $2, $3, $4, NOW(), $5)
-      RETURNING patient_id, code, name, injury_type, pain_level, arrival_time, priority_id;
-    `;
+            INSERT INTO patient
+                (code, name, injury_type, pain_level, arrival_time, priority_id)
+            VALUES
+                ($1, $2, $3, $4, NOW(), $5)
+            RETURNING patient_id, code, name, injury_type, pain_level, arrival_time, priority_id;
+        `;
 
         const patientResult = await pool.query(insertPatientQuery, [
             code.toUpperCase(),
@@ -80,11 +80,11 @@ app.post('/api/patients', async (req, res) => {
 
         // Log action in action_logs table
         const insertLogQuery = `
-      INSERT INTO action_logs
-        (patient_id, action_type, old_priority_id, new_priority_id, action_timestamp, notes)
-      VALUES
-        ($1, 'Add Patient', NULL, $2, NOW(), 'Patient checked in via triage form');
-    `;
+            INSERT INTO action_logs
+                (patient_id, action_type, old_priority_id, new_priority_id, action_timestamp, notes)
+            VALUES
+                ($1, 'Add Patient', NULL, $2, NOW(), 'Patient checked in via triage form');
+        `;
 
         await pool.query(insertLogQuery, [newPatient.patient_id, priority_id]);
 
@@ -123,11 +123,11 @@ app.put('/api/patients/:id/priority', async (req, res) => {
 
         // Log action
         const insertLogQuery = `
-      INSERT INTO action_logs
-        (patient_id, action_type, old_priority_id, new_priority_id, action_timestamp, notes)
-      VALUES
-        ($1, 'Change Priority', $2, $3, NOW(), $4);
-    `;
+            INSERT INTO action_logs
+                (patient_id, action_type, old_priority_id, new_priority_id, action_timestamp, notes)
+            VALUES
+                ($1, 'Change Priority', $2, $3, NOW(), $4);
+        `;
 
         await pool.query(insertLogQuery, [
             patientId,
@@ -146,45 +146,57 @@ app.put('/api/patients/:id/priority', async (req, res) => {
     }
 });
 
-// Remove patient
+// Remove patient (delete logs first, then patient, in a transaction)
 app.delete('/api/patients/:id', async (req, res) => {
+    const client = await pool.connect();
     try {
         const patientId = parseInt(req.params.id, 10);
-        const { notes } = req.body;
 
-        // Get patient before deleting
-        const patientResult = await pool.query(
-            'SELECT patient_id, priority_id FROM patient WHERE patient_id = $1',
+        if (Number.isNaN(patientId)) {
+            return res.json({ message: 'Invalid patient id; nothing to remove' });
+        }
+
+        await client.query('BEGIN');
+
+        // Check if patient exists
+        const patientResult = await client.query(
+            'SELECT patient_id, name, code, priority_id FROM patient WHERE patient_id = $1',
             [patientId]
         );
 
         if (patientResult.rowCount === 0) {
-            return res.status(404).json({ error: 'Patient not found' });
+            // Nothing to delete, but from UI perspective this is fine
+            await client.query('COMMIT');
+            return res.json({ message: 'Patient was already removed' });
         }
 
         const patient = patientResult.rows[0];
 
-        // Delete from patient table
-        await pool.query('DELETE FROM patient WHERE patient_id = $1', [patientId]);
+        // 1) Delete related logs so FK constraint is satisfied
+        await client.query(
+            'DELETE FROM action_logs WHERE patient_id = $1',
+            [patientId]
+        );
 
-        // Log removal
-        const insertLogQuery = `
-      INSERT INTO action_logs
-        (patient_id, action_type, old_priority_id, new_priority_id, action_timestamp, notes)
-      VALUES
-        ($1, 'Remove Patient', $2, NULL, NOW(), $3);
-    `;
+        // 2) Delete patient record
+        await client.query(
+            'DELETE FROM patient WHERE patient_id = $1',
+            [patientId]
+        );
 
-        await pool.query(insertLogQuery, [
-            patientId,
-            patient.priority_id,
-            notes || 'Patient removed from waitlist'
-        ]);
+        await client.query('COMMIT');
+
+        console.log(
+            `Removed patient ${patient.name} (${patient.code}) [id=${patientId}] and all related logs.`
+        );
 
         res.json({ message: 'Patient removed successfully' });
     } catch (err) {
+        await pool.query('ROLLBACK');
         console.error('Error removing patient:', err);
         res.status(500).json({ error: 'Database error removing patient' });
+    } finally {
+        client.release();
     }
 });
 
@@ -192,17 +204,17 @@ app.delete('/api/patients/:id', async (req, res) => {
 app.get('/api/action-logs', async (req, res) => {
     try {
         const result = await pool.query(`
-      SELECT
-        action_id,
-        patient_id,
-        action_type,
-        old_priority_id,
-        new_priority_id,
-        action_timestamp,
-        notes
-      FROM action_logs
-      ORDER BY action_timestamp DESC;
-    `);
+            SELECT
+                action_id,
+                patient_id,
+                action_type,
+                old_priority_id,
+                new_priority_id,
+                action_timestamp,
+                notes
+            FROM action_logs
+            ORDER BY action_timestamp DESC;
+        `);
         res.json(result.rows);
     } catch (err) {
         console.error('Error fetching action logs:', err);
@@ -214,10 +226,10 @@ app.get('/api/action-logs', async (req, res) => {
 app.get('/api/priorities', async (req, res) => {
     try {
         const result = await pool.query(`
-      SELECT priority_id, level_name, description, color_code, estimated_wait_time
-      FROM priorities
-      ORDER BY priority_id;
-    `);
+            SELECT priority_id, level_name, description, color_code, estimated_wait_time
+            FROM priorities
+            ORDER BY priority_id;
+        `);
         res.json(result.rows);
     } catch (err) {
         console.error('Error fetching priorities:', err);

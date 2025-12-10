@@ -67,29 +67,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Small helper to convert our internal priority key -> display string used by admin
-    function displayPriorityFromKey(key) {
-        switch (key) {
-            case 'critical': return 'Critical';
-            case 'high':     return 'High';
-            case 'medium':   return 'Medium';
-            default:         return 'Low';
-        }
-    }
-
     // ===== TRIAGE FORM SUBMISSION =====
     const triageForm = document.getElementById('patientTriageForm');
     if (triageForm) {
-        triageForm.addEventListener('submit', function(e) {
+        triageForm.addEventListener('submit', async function(e) {
             e.preventDefault();
 
             // Get form data
             const formData = {
-                name: document.getElementById('fullName').value,
-                code: document.getElementById('patientCode').value.toUpperCase(),
+                name: document.getElementById('fullName').value.trim(),
+                code: document.getElementById('patientCode').value.trim().toUpperCase(),
                 injuryType: document.getElementById('injuryType').value,
                 symptoms: document.getElementById('symptoms').value,
-                painLevel: parseInt(document.getElementById('painLevel').value),
+                painLevel: parseInt(document.getElementById('painLevel').value, 10),
                 emergencySymptoms: {
                     chestPain: document.getElementById('chestPain').checked,
                     difficultyBreathing: document.getElementById('difficultyBreathing').checked,
@@ -99,79 +89,95 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             };
 
-            // Calculate priority based on pain level and emergency symptoms
-            let priority = 'low';
-            let estimatedWait = 60; // minutes
-
-            if (formData.painLevel >= 8 ||
-                formData.emergencySymptoms.chestPain ||
-                formData.emergencySymptoms.difficultyBreathing ||
-                formData.emergencySymptoms.severeBleeding) {
-                priority = 'critical';
-                estimatedWait = 0;
-            } else if (formData.painLevel >= 5 ||
-                formData.emergencySymptoms.lossOfConsciousness ||
-                formData.emergencySymptoms.severeHeadache) {
-                priority = 'high';
-                estimatedWait = 15;
-            } else if (formData.painLevel >= 3) {
-                priority = 'medium';
-                estimatedWait = 30;
+            // Basic validation (client-side)
+            if (!formData.name || formData.name.length < 2) {
+                alert('Please enter your full name (at least 2 characters).');
+                return;
+            }
+            if (!/^[A-Za-z]{3}$/.test(formData.code)) {
+                alert('Please enter a 3-letter code (e.g., ABC).');
+                return;
+            }
+            if (!formData.injuryType) {
+                alert('Please select an injury type.');
+                return;
             }
 
-            const now = new Date();
-            const arrivalIso = now.toISOString(); // for patient view
-            const arrivalDisplay = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); // for admin table
-
-            const patientData = {
-                ...formData,
-                priority,           // internal key: low/medium/high/critical
-                estimatedWait,
-                arrivalTime: arrivalIso,
-                status: 'waiting'
-            };
-
-            // ---------- BRIDGE TO ADMIN: save into triageSubmissions ----------
-            const triageEntry = {
+            // --- SEND TO BACKEND / DATABASE ---
+            // Our backend /api/patients route expects: code, name, injury_type, pain_level
+            const payload = {
                 code: formData.code,
                 name: formData.name,
-                injury: formData.injuryType,
-                painLevel: formData.painLevel,
-                priority: displayPriorityFromKey(priority), // "Critical", "High", etc.
-                arrivalTime: arrivalDisplay                  // admin shows this directly
+                injury_type: formData.injuryType,
+                pain_level: formData.painLevel
             };
 
-            const STORAGE_KEY = 'triageSubmissions';
-            const queue = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-            queue.push(triageEntry);
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
-            // ---------------------------------------------------------------
+            try {
+                const response = await fetch('/api/patients', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
 
-            // Save to localStorage (simulate DB) – for the patient view
-            localStorage.setItem('currentPatient', JSON.stringify(patientData));
+                if (!response.ok) {
+                    console.error('Server returned error:', response.status);
+                    alert('There was an error submitting your triage form. Please try again.');
+                    return;
+                }
 
-            // Update patient session
-            localStorage.setItem('patientSession', JSON.stringify({
-                loggedIn: true,
-                patientCode: formData.code,
-                patientName: formData.name
-            }));
+                // This is the row inserted into PostgreSQL (with patient_id, arrival_time, priority_id, etc.)
+                const savedPatient = await response.json();
 
-            alert('Triage form submitted successfully! Your priority level is: ' + priority);
+                // Map priority_id from DB -> text + wait time (same mapping as server/admin)
+                const priorityMap = {
+                    1: { level: 'critical', wait: 0 },
+                    2: { level: 'high',     wait: 15 },
+                    3: { level: 'medium',   wait: 30 },
+                    4: { level: 'low',      wait: 60 }
+                };
 
-            // Update sidebar info
-            document.getElementById('patientNameDisplay').textContent = 'Welcome, ' + formData.name;
-            document.getElementById('patientCodeDisplay').textContent = 'Code: ' + formData.code;
-            const statusEl = document.getElementById('patientStatus');
-            statusEl.textContent = 'Status: In Queue';
-            statusEl.className = 'profile-status status-waiting';
+                const pr = priorityMap[savedPatient.priority_id] || priorityMap[4];
 
-            // Switch to wait time section
-            const waitTimeBtn = document.getElementById('waitTimeBtn');
-            if (waitTimeBtn) waitTimeBtn.click();
+                const patientData = {
+                    ...formData,
+                    priority: pr.level,
+                    estimatedWait: pr.wait,
+                    arrivalTime: savedPatient.arrival_time,
+                    status: 'waiting'
+                };
 
-            // Update wait time UI
-            updateWaitTimeDisplay(patientData);
+                // Save to localStorage for the patient view
+                localStorage.setItem('currentPatient', JSON.stringify(patientData));
+
+                // Update patient session
+                localStorage.setItem('patientSession', JSON.stringify({
+                    loggedIn: true,
+                    patientCode: formData.code,
+                    patientName: formData.name
+                }));
+
+                alert('Triage form submitted successfully! Your priority level is: ' + pr.level);
+
+                // Update sidebar info
+                document.getElementById('patientNameDisplay').textContent = 'Welcome, ' + formData.name;
+                document.getElementById('patientCodeDisplay').textContent = 'Code: ' + formData.code;
+                const statusEl = document.getElementById('patientStatus');
+                statusEl.textContent = 'Status: In Queue';
+                statusEl.className = 'profile-status status-waiting';
+
+                // Switch to wait time section
+                const waitTimeBtn = document.getElementById('waitTimeBtn');
+                if (waitTimeBtn) waitTimeBtn.click();
+
+                // Update wait time UI
+                updateWaitTimeDisplay(patientData);
+
+            } catch (err) {
+                console.error('Error submitting triage form:', err);
+                alert('Network or server error. Please try again.');
+            }
         });
     }
 
@@ -419,13 +425,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ===== CLOSE MODALS WHEN CLICKING OUTSIDE =====
     window.addEventListener('click', function(e) {
-        const emergencyModal = document.getElementById('emergencyModal');
-        const symptomsModal = document.getElementById('symptomsModal');
-
-        if (e.target === emergencyModal && emergencyModal) {
+        if (e.target === emergencyModal) {
             emergencyModal.classList.remove('active');
         }
-        if (e.target === symptomsModal && symptomsModal) {
+        if (e.target === symptomsModal) {
             symptomsModal.classList.remove('active');
         }
     });

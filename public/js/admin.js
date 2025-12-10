@@ -1,25 +1,19 @@
-// admin.js - Fully functional Admin Dashboard
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize data storage
-    initializeData();
-    
-    // DOM Elements
+// admin.js - Admin Dashboard using backend API (shared with user form + DB)
+
+document.addEventListener('DOMContentLoaded', () => {
+    // DOM elements
     const waitlistBody = document.getElementById('waitlistBody');
     const emptyState = document.getElementById('emptyState');
     const actionLog = document.getElementById('actionLog');
     const emptyLog = document.getElementById('emptyLog');
     const totalPatientsElement = document.getElementById('totalPatients');
     const patientDetailBody = document.getElementById('patientDetailBody');
-    
-    // Buttons
+
     const refreshBtn = document.getElementById('refreshBtn');
     const addPatientBtn = document.getElementById('addPatientBtn');
     const clearLogBtn = document.getElementById('clearLogBtn');
-    const increasePriorityBtn = document.getElementById('increasePriorityBtn');
-    const decreasePriorityBtn = document.getElementById('decreasePriorityBtn');
-    const removePatientBtn = document.getElementById('removePatientBtn');
-    
-    // Modal Elements
+
+    // Modals + forms
     const addPatientModal = document.getElementById('addPatientModal');
     const confirmRemoveModal = document.getElementById('confirmRemoveModal');
     const closeAddModal = document.getElementById('closeAddModal');
@@ -28,185 +22,129 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeRemoveModal = document.getElementById('closeRemoveModal');
     const cancelRemoveBtn = document.getElementById('cancelRemoveBtn');
     const confirmRemoveBtn = document.getElementById('confirmRemoveBtn');
-    
-    // Form Elements
+
+    const addPatientForm = document.getElementById('addPatientForm');
     const modalPainLevel = document.getElementById('modalPainLevel');
     const modalPainValue = document.getElementById('modalPainValue');
-    const addPatientForm = document.getElementById('addPatientForm');
-    
-    // Current selected patient
+
+    // In-memory data loaded from backend
+    let patients = [];
+    let logs = [];
     let selectedPatientId = null;
-    
-    // Priority levels
+
+    // Priority meta (same mapping as server/user.js)
     const priorityLevels = {
-        1: { id: 1, name: 'Critical', color: 'critical', waitTime: 'Immediate', order: 1 },
-        2: { id: 2, name: 'High', color: 'high', waitTime: '15 min', order: 2 },
-        3: { id: 3, name: 'Medium', color: 'medium', waitTime: '30 min', order: 3 },
-        4: { id: 4, name: 'Low', color: 'low', waitTime: '60 min', order: 4 }
+        1: { id: 1, name: 'Critical', color: 'critical', waitLabel: 'Immediate' },
+        2: { id: 2, name: 'High',     color: 'high',     waitLabel: '15 min'   },
+        3: { id: 3, name: 'Medium',   color: 'medium',   waitLabel: '30 min'   },
+        4: { id: 4, name: 'Low',      color: 'low',      waitLabel: '60 min'   }
     };
-    
-    // Initialize application
-    function initializeData() {
-        // Check if data exists in localStorage
-        if (!localStorage.getItem('patients')) {
-            // Create initial demo data
-            const initialPatients = [
-                {
-                    id: 1,
-                    code: 'ABC',
-                    name: 'John Smith',
-                    injuryType: 'Chest Pain',
-                    painLevel: 8,
-                    priorityId: 1,
-                    arrivalTime: new Date(Date.now() - 30 * 60000).toISOString(), // 30 minutes ago
-                    status: 'waiting',
-                    notes: 'Patient complaining of severe chest pain'
-                },
-                {
-                    id: 2,
-                    code: 'XYZ',
-                    name: 'Jane Doe',
-                    injuryType: 'Arm Injury',
-                    painLevel: 5,
-                    priorityId: 3,
-                    arrivalTime: new Date(Date.now() - 15 * 60000).toISOString(), // 15 minutes ago
-                    status: 'waiting',
-                    notes: 'Fractured arm from fall'
-                },
-                {
-                    id: 3,
-                    code: 'DEF',
-                    name: 'Robert Johnson',
-                    injuryType: 'Headache',
-                    painLevel: 3,
-                    priorityId: 4,
-                    arrivalTime: new Date(Date.now() - 5 * 60000).toISOString(), // 5 minutes ago
-                    status: 'waiting',
-                    notes: 'Persistent headache for 2 days'
-                }
-            ];
-            
-            localStorage.setItem('patients', JSON.stringify(initialPatients));
-            localStorage.setItem('nextPatientId', '4');
+
+    // Injury code → nice label (for patients created from user form)
+    const injuryLabelMap = {
+        head: 'Head / Concussion',
+        chest: 'Chest Pain',
+        abdomen: 'Abdomen / Stomach Pain',
+        neck: 'Neck / Spinal Injury',
+        back: 'Back / Spine Pain',
+        arm: 'Arm / Upper Limb Injury',
+        leg: 'Leg / Lower Limb Injury',
+        burn: 'Burn / Thermal Injury',
+        bleeding: 'Severe Bleeding',
+        allergic: 'Allergic Reaction',
+        other: 'Other / General Symptoms'
+    };
+
+    const formatInjuryType = (value) => {
+        if (!value) return '';
+        const lower = String(value).toLowerCase();
+        return injuryLabelMap[lower] || value;
+    };
+
+    // Small helper for fetch + JSON
+    async function api(path, options = {}) {
+        const res = await fetch(path, {
+            headers: { 'Content-Type': 'application/json' },
+            ...options
+        });
+        if (!res.ok) {
+            const text = await res.text();
+            console.error(`API error ${res.status} on ${path}:`, text);
+            throw new Error(`Request failed: ${res.status}`);
         }
-        
-        if (!localStorage.getItem('actionLogs')) {
-            const initialLogs = [
-                {
-                    id: 1,
-                    patientId: 1,
-                    actionType: 'Add Patient',
-                    oldPriorityId: null,
-                    newPriorityId: 1,
-                    timestamp: new Date(Date.now() - 30 * 60000).toISOString(),
-                    notes: 'Patient checked in with severe chest pain'
-                },
-                {
-                    id: 2,
-                    patientId: 2,
-                    actionType: 'Add Patient',
-                    oldPriorityId: null,
-                    newPriorityId: 3,
-                    timestamp: new Date(Date.now() - 15 * 60000).toISOString(),
-                    notes: 'Patient with fractured arm'
-                },
-                {
-                    id: 3,
-                    patientId: 3,
-                    actionType: 'Add Patient',
-                    oldPriorityId: null,
-                    newPriorityId: 4,
-                    timestamp: new Date(Date.now() - 5 * 60000).toISOString(),
-                    notes: 'Patient with persistent headache'
-                }
-            ];
-            
-            localStorage.setItem('actionLogs', JSON.stringify(initialLogs));
-            localStorage.setItem('nextLogId', '4');
+        return res.json();
+    }
+
+    /* ------------ LOAD DATA FROM BACKEND ------------ */
+
+    async function loadPatients() {
+        try {
+            patients = await api('/api/patients');
+            renderPatients();
+        } catch (err) {
+            console.error('Error loading patients:', err);
+            alert('Error loading patients from server.');
         }
     }
-    
-    // Get data from localStorage
-    function getPatients() {
-        return JSON.parse(localStorage.getItem('patients') || '[]');
+
+    async function loadActionLogs() {
+        try {
+            logs = await api('/api/action-logs');
+            renderActionLogs();
+        } catch (err) {
+            console.error('Error loading action logs:', err);
+            // don’t alert spam on every refresh – just log
+        }
     }
-    
-    function getActionLogs() {
-        return JSON.parse(localStorage.getItem('actionLogs') || '[]');
-    }
-    
-    // Save data to localStorage
-    function savePatients(patients) {
-        localStorage.setItem('patients', JSON.stringify(patients));
-    }
-    
-    function saveActionLogs(logs) {
-        localStorage.setItem('actionLogs', JSON.stringify(logs));
-    }
-    
-    // Generate next ID
-    function getNextPatientId() {
-        const nextId = parseInt(localStorage.getItem('nextPatientId') || '1');
-        localStorage.setItem('nextPatientId', (nextId + 1).toString());
-        return nextId;
-    }
-    
-    function getNextLogId() {
-        const nextId = parseInt(localStorage.getItem('nextLogId') || '1');
-        localStorage.setItem('nextLogId', (nextId + 1).toString());
-        return nextId;
-    }
-    
-    // Render patient table
+
+    /* ------------ RENDER PATIENT TABLE ------------ */
+
     function renderPatients() {
-        const patients = getPatients();
-        
-        if (patients.length === 0) {
+        if (!patients || patients.length === 0) {
             waitlistBody.innerHTML = '';
             emptyState.style.display = 'block';
             totalPatientsElement.textContent = '0';
-            patientDetailBody.innerHTML = `
-                <div class="empty-state">
-                    <i class="fas fa-user-circle"></i>
-                    <h3>No Patient Selected</h3>
-                    <p>Select a patient from the waitlist to view details</p>
-                </div>
-            `;
-            selectedPatientId = null;
+            renderNoPatientSelected();
             return;
         }
-        
+
         emptyState.style.display = 'none';
-        totalPatientsElement.textContent = patients.length;
-        
-        // Sort patients by priority (critical first) and then by arrival time
-        const sortedPatients = [...patients].sort((a, b) => {
-            const priorityDiff = a.priorityId - b.priorityId;
-            if (priorityDiff !== 0) return priorityDiff;
-            return new Date(a.arrivalTime) - new Date(b.arrivalTime);
+        totalPatientsElement.textContent = patients.length.toString();
+
+        // Sort: priority (1..4) then arrival_time (oldest first)
+        const sorted = [...patients].sort((a, b) => {
+            const pDiff = a.priority_id - b.priority_id;
+            if (pDiff !== 0) return pDiff;
+            return new Date(a.arrival_time) - new Date(b.arrival_time);
         });
-        
-        let tableHTML = '';
-        
-        sortedPatients.forEach(patient => {
-            const priority = priorityLevels[patient.priorityId];
-            const arrivalTime = new Date(patient.arrivalTime);
-            const formattedTime = arrivalTime.toLocaleTimeString([], { 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
-            
-            const isSelected = patient.id === selectedPatientId;
-            
-            tableHTML += `
-                <tr data-patient-id="${patient.id}" class="${isSelected ? 'selected' : ''}">
-                    <td class="detail-code">${patient.code}</td>
-                    <td>${patient.name}</td>
-                    <td>${patient.injuryType}</td>
-                    <td>${patient.painLevel}/10</td>
-                    <td><span class="priority-badge priority-${priority.color}">${priority.name}</span></td>
-                    <td class="wait-time-indicator wait-time-${priority.color}">${priority.waitTime}</td>
-                    <td>${formattedTime}</td>
+
+        let html = '';
+
+        sorted.forEach(p => {
+            const pr = priorityLevels[p.priority_id] || priorityLevels[4];
+            const arrival = new Date(p.arrival_time);
+            const arrivalStr = arrival.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const injuryText = formatInjuryType(p.injury_type);
+
+            const isSelected = p.patient_id === selectedPatientId;
+
+            html += `
+                <tr data-patient-id="${p.patient_id}" class="${isSelected ? 'selected' : ''}">
+                    <td class="detail-code">${p.code}</td>
+                    <td>${p.name}</td>
+                    <td>${injuryText}</td>
+                    <td>${p.pain_level}/10</td>
+                    <td>
+                        <span class="priority-badge priority-${pr.color}">
+                            ${pr.name}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="wait-time-indicator wait-time-${pr.color}">
+                            ${pr.waitLabel}
+                        </span>
+                    </td>
+                    <td>${arrivalStr}</td>
                     <td class="action-buttons">
                         <button class="btn btn-sm btn-warning increase-attention-btn" title="Increase Attention">
                             <i class="fas fa-arrow-up"></i>
@@ -221,174 +159,180 @@ document.addEventListener('DOMContentLoaded', function() {
                 </tr>
             `;
         });
-        
-        waitlistBody.innerHTML = tableHTML;
-        
-        // Add event listeners to table rows and buttons
-        document.querySelectorAll('.waitlist-table tbody tr').forEach(row => {
-            row.addEventListener('click', function(e) {
-                if (!e.target.closest('.action-buttons')) {
-                    const patientId = parseInt(this.dataset.patientId);
-                    selectPatient(patientId);
-                }
+
+        waitlistBody.innerHTML = html;
+
+        // Attach events for each row + buttons
+        document.querySelectorAll('#waitlistBody tr').forEach(row => {
+            const id = parseInt(row.dataset.patientId, 10);
+
+            row.addEventListener('click', (e) => {
+                if (e.target.closest('.action-buttons')) return;
+                selectPatient(id);
             });
-            
-            // Add event listeners to action buttons
-            const increaseBtn = row.querySelector('.increase-attention-btn');
-            const decreaseBtn = row.querySelector('.decrease-attention-btn');
-            const removeBtn = row.querySelector('.remove-patient-btn');
-            
-            increaseBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const patientId = parseInt(row.dataset.patientId);
-                changePatientPriority(patientId, 'increase');
-            });
-            
-            decreaseBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const patientId = parseInt(row.dataset.patientId);
-                changePatientPriority(patientId, 'decrease');
-            });
-            
-            removeBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                const patientId = parseInt(row.dataset.patientId);
-                showRemoveConfirmation(patientId);
-            });
+
+            row.querySelector('.increase-attention-btn')
+                .addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    changePatientPriority(id, 'increase');
+                });
+
+            row.querySelector('.decrease-attention-btn')
+                .addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    changePatientPriority(id, 'decrease');
+                });
+
+            row.querySelector('.remove-patient-btn')
+                .addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    showRemoveConfirmation(id);
+                });
         });
     }
-    
-    // Render action logs
+
+    /* ------------ RENDER ACTION LOGS ------------ */
+
     function renderActionLogs() {
-        const logs = getActionLogs();
-        
-        if (logs.length === 0) {
+        if (!logs || logs.length === 0) {
             actionLog.innerHTML = '';
             emptyLog.style.display = 'block';
             return;
         }
-        
+
         emptyLog.style.display = 'none';
-        
-        // Sort logs by timestamp (newest first)
-        const sortedLogs = [...logs].sort((a, b) => 
-            new Date(b.timestamp) - new Date(a.timestamp)
+
+        const sorted = [...logs].sort(
+            (a, b) => new Date(b.action_timestamp) - new Date(a.action_timestamp)
         );
-        
-        let logsHTML = '';
-        
-        sortedLogs.forEach(log => {
-            const timestamp = new Date(log.timestamp);
-            const formattedTime = timestamp.toLocaleString();
-            
-            let actionText = '';
-            let patient = getPatients().find(p => p.id === log.patientId);
-            let patientInfo = patient ? `${patient.code} (${patient.name})` : 'Unknown Patient';
-            
-            switch (log.actionType) {
-                case 'Add Patient':
-                    actionText = `Added patient ${patientInfo}`;
-                    break;
-                case 'Remove Patient':
-                    actionText = `Removed patient ${patientInfo}`;
-                    break;
-                case 'Change Priority':
-                    const oldPriority = log.oldPriorityId ? priorityLevels[log.oldPriorityId].name : 'None';
-                    const newPriority = log.newPriorityId ? priorityLevels[log.newPriorityId].name : 'None';
-                    actionText = `Changed priority for ${patientInfo} from ${oldPriority} to ${newPriority}`;
-                    break;
-                default:
-                    actionText = `${log.actionType} for ${patientInfo}`;
+
+        let html = '';
+
+        sorted.forEach(log => {
+            const ts = new Date(log.action_timestamp).toLocaleString();
+            const patient = patients.find(p => p.patient_id === log.patient_id);
+            const patientInfo = patient ? `${patient.code} (${patient.name})` : `Patient #${log.patient_id}`;
+
+            let actionText;
+            if (log.action_type === 'Add Patient') {
+                actionText = `Added patient ${patientInfo}`;
+            } else if (log.action_type === 'Remove Patient') {
+                actionText = `Removed patient ${patientInfo}`;
+            } else if (log.action_type === 'Change Priority') {
+                const oldP = log.old_priority_id ? priorityLevels[log.old_priority_id]?.name : 'None';
+                const newP = log.new_priority_id ? priorityLevels[log.new_priority_id]?.name : 'None';
+                actionText = `Changed priority for ${patientInfo} from ${oldP} to ${newP}`;
+            } else {
+                actionText = `${log.action_type} for ${patientInfo}`;
             }
-            
-            logsHTML += `
+
+            html += `
                 <div class="log-entry">
-                    <div class="log-timestamp">${formattedTime}</div>
+                    <div class="log-timestamp">${ts}</div>
                     <div class="log-action">${actionText}</div>
                     ${log.notes ? `<div class="log-notes">${log.notes}</div>` : ''}
                 </div>
             `;
         });
-        
-        actionLog.innerHTML = logsHTML;
+
+        actionLog.innerHTML = html;
     }
-    
-    // Select a patient
+
+    /* ------------ PATIENT DETAILS PANEL ------------ */
+
+    function renderNoPatientSelected() {
+        patientDetailBody.innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-user-circle"></i>
+                <h3>No Patient Selected</h3>
+                <p>Select a patient from the waitlist to view details</p>
+            </div>
+        `;
+        selectedPatientId = null;
+    }
+
     function selectPatient(patientId) {
-        const patients = getPatients();
-        const patient = patients.find(p => p.id === patientId);
-        
-        if (!patient) return;
-        
+        const p = patients.find(pt => pt.patient_id === patientId);
+        if (!p) {
+            renderNoPatientSelected();
+            return;
+        }
         selectedPatientId = patientId;
-        
-        // Update table selection
-        document.querySelectorAll('.waitlist-table tbody tr').forEach(row => {
-            row.classList.remove('selected');
-            if (parseInt(row.dataset.patientId) === patientId) {
-                row.classList.add('selected');
-            }
+
+        // Update selected row highlight
+        document.querySelectorAll('#waitlistBody tr').forEach(row => {
+            row.classList.toggle(
+                'selected',
+                parseInt(row.dataset.patientId, 10) === patientId
+            );
         });
-        
-        // Update patient details
-        const priority = priorityLevels[patient.priorityId];
-        const arrivalTime = new Date(patient.arrivalTime);
-        const formattedArrivalTime = arrivalTime.toLocaleString();
-        
+
+        const pr = priorityLevels[p.priority_id] || priorityLevels[4];
+        const arrivalFull = new Date(p.arrival_time).toLocaleString();
+
+        const painLabel =
+            p.pain_level >= 8 ? 'Severe' :
+                p.pain_level >= 5 ? 'Moderate' : 'Mild';
+
         patientDetailBody.innerHTML = `
             <div class="detail-group">
                 <div class="detail-label">
                     <i class="fas fa-id-card"></i> Patient Code
                 </div>
-                <div class="detail-value detail-code">${patient.code}</div>
+                <div class="detail-value detail-code">${p.code}</div>
             </div>
-            
+
             <div class="detail-group">
                 <div class="detail-label">
                     <i class="fas fa-user"></i> Full Name
                 </div>
-                <div class="detail-value">${patient.name}</div>
+                <div class="detail-value">${p.name}</div>
             </div>
-            
+
             <div class="detail-group">
                 <div class="detail-label">
                     <i class="fas fa-user-injured"></i> Injury Type
                 </div>
-                <div class="detail-value">${patient.injuryType}</div>
+                <div class="detail-value">${formatInjuryType(p.injury_type)}</div>
             </div>
-            
+
             <div class="detail-group">
                 <div class="detail-label">
                     <i class="fas fa-tachometer-alt"></i> Pain Level
                 </div>
-                <div class="detail-value">${patient.painLevel}/10 
-                    <span class="priority-badge priority-${priority.color}">${patient.painLevel >= 8 ? 'Severe' : patient.painLevel >= 5 ? 'Moderate' : 'Mild'}</span>
+                <div class="detail-value">
+                    ${p.pain_level}/10
+                    <span class="priority-badge priority-${pr.color}">${painLabel}</span>
                 </div>
             </div>
-            
+
             <div class="detail-group">
                 <div class="detail-label">
                     <i class="fas fa-exclamation-triangle"></i> Priority Level
                 </div>
                 <div class="detail-value">
-                    <span class="priority-badge priority-${priority.color}">${priority.name}</span>
+                    <span class="priority-badge priority-${pr.color}">${pr.name}</span>
                 </div>
             </div>
-            
+
             <div class="detail-group">
                 <div class="detail-label">
                     <i class="fas fa-clock"></i> Arrival Time
                 </div>
-                <div class="detail-value">${formattedArrivalTime}</div>
+                <div class="detail-value">${arrivalFull}</div>
             </div>
-            
+
             <div class="detail-group">
                 <div class="detail-label">
                     <i class="fas fa-hourglass-half"></i> Estimated Wait
                 </div>
-                <div class="detail-value wait-time-indicator wait-time-${priority.color}">${priority.waitTime}</div>
+                <div class="detail-value">
+                    <span class="wait-time-indicator wait-time-${pr.color}">
+                        ${pr.waitLabel}
+                    </span>
+                </div>
             </div>
-            
+
             <div class="detail-actions">
                 <button class="btn btn-warning" id="increasePriorityBtn">
                     <i class="fas fa-arrow-up"></i> Increase Attention
@@ -400,382 +344,238 @@ document.addEventListener('DOMContentLoaded', function() {
                     <i class="fas fa-trash"></i> Remove Patient
                 </button>
             </div>
-            
-            <div class="detail-group">
-                <div class="detail-label">
-                    <i class="fas fa-sticky-note"></i> Notes
-                </div>
-                <textarea id="patientNotes" class="form-input" placeholder="Add notes about this patient..." rows="3">${patient.notes || ''}</textarea>
-                <button class="btn btn-sm btn-primary mt-1" id="saveNotesBtn">
-                    <i class="fas fa-save"></i> Save Notes
-                </button>
-            </div>
         `;
-        
-        // Add event listeners to detail buttons
-        document.getElementById('increasePriorityBtn').addEventListener('click', function() {
-            changePatientPriority(patientId, 'increase');
-        });
-        
-        document.getElementById('decreasePriorityBtn').addEventListener('click', function() {
-            changePatientPriority(patientId, 'decrease');
-        });
-        
-        document.getElementById('removePatientDetailBtn').addEventListener('click', function() {
-            showRemoveConfirmation(patientId);
-        });
-        
-        document.getElementById('saveNotesBtn').addEventListener('click', function() {
-            savePatientNotes(patientId);
-        });
+
+        // Detail buttons
+        document.getElementById('increasePriorityBtn')
+            .addEventListener('click', () => changePatientPriority(patientId, 'increase'));
+
+        document.getElementById('decreasePriorityBtn')
+            .addEventListener('click', () => changePatientPriority(patientId, 'decrease'));
+
+        document.getElementById('removePatientDetailBtn')
+            .addEventListener('click', () => showRemoveConfirmation(patientId));
     }
-    
-    // Change patient priority
-    function changePatientPriority(patientId, direction) {
-        const patients = getPatients();
-        const patientIndex = patients.findIndex(p => p.id === patientId);
-        
-        if (patientIndex === -1) return;
-        
-        const patient = patients[patientIndex];
-        const oldPriorityId = patient.priorityId;
-        
+
+    /* ------------ PRIORITY CHANGES & REMOVAL ------------ */
+
+    async function changePatientPriority(patientId, direction) {
+        const p = patients.find(pt => pt.patient_id === patientId);
+        if (!p) return;
+
         let newPriorityId;
-        let actionType;
-        
         if (direction === 'increase') {
-            // Move to higher priority (lower number)
-            newPriorityId = Math.max(1, patient.priorityId - 1);
-            actionType = 'Increase Attention';
+            newPriorityId = Math.max(1, p.priority_id - 1);
         } else {
-            // Move to lower priority (higher number)
-            newPriorityId = Math.min(4, patient.priorityId + 1);
-            actionType = 'Decrease Attention';
+            newPriorityId = Math.min(4, p.priority_id + 1);
         }
-        
-        if (oldPriorityId === newPriorityId) {
-            alert(`Patient is already at ${priorityLevels[newPriorityId].name} priority`);
+
+        if (newPriorityId === p.priority_id) {
+            alert(`Patient is already at ${priorityLevels[newPriorityId].name} priority.`);
             return;
         }
-        
-        // Update patient priority
-        patient.priorityId = newPriorityId;
-        patients[patientIndex] = patient;
-        savePatients(patients);
-        
-        // Log the action
-        const logs = getActionLogs();
-        const newLog = {
-            id: getNextLogId(),
-            patientId: patientId,
-            actionType: actionType,
-            oldPriorityId: oldPriorityId,
-            newPriorityId: newPriorityId,
-            timestamp: new Date().toISOString(),
-            notes: `Priority changed from ${priorityLevels[oldPriorityId].name} to ${priorityLevels[newPriorityId].name}`
-        };
-        
-        logs.push(newLog);
-        saveActionLogs(logs);
-        
-        // Update UI
-        renderPatients();
-        renderActionLogs();
-        
-        // Reselect patient if it was selected
-        if (selectedPatientId === patientId) {
-            selectPatient(patientId);
+
+        try {
+            await api(`/api/patients/${patientId}/priority`, {
+                method: 'PUT',
+                body: JSON.stringify({
+                    new_priority_id: newPriorityId,
+                    notes: `Priority changed from ${priorityLevels[p.priority_id].name} to ${priorityLevels[newPriorityId].name} by admin dashboard`
+                })
+            });
+
+            await loadPatients();
+            await loadActionLogs();
+            if (selectedPatientId === patientId) {
+                selectPatient(patientId);
+            }
+
+            alert(`${p.name}'s priority changed to ${priorityLevels[newPriorityId].name}.`);
+        } catch (err) {
+            console.error('Error changing priority:', err);
+            alert('Error updating patient priority.');
         }
-        
-        // Show confirmation
-        const patientName = patient.name;
-        const oldPriority = priorityLevels[oldPriorityId].name;
-        const newPriority = priorityLevels[newPriorityId].name;
-        
-        alert(`${patientName}'s priority changed from ${oldPriority} to ${newPriority}`);
     }
-    
-    // Show remove confirmation modal
+
     function showRemoveConfirmation(patientId) {
-        const patients = getPatients();
-        const patient = patients.find(p => p.id === patientId);
-        
-        if (!patient) return;
-        
-        document.getElementById('removePatientName').textContent = patient.name;
-        document.getElementById('removePatientCode').textContent = patient.code;
-        
-        // Store the patient ID in the modal for later use
-        confirmRemoveModal.dataset.patientId = patientId;
+        const p = patients.find(pt => pt.patient_id === patientId);
+        if (!p) return;
+
+        document.getElementById('removePatientName').textContent = p.name;
+        document.getElementById('removePatientCode').textContent = p.code;
+
+        confirmRemoveModal.dataset.patientId = String(patientId);
         confirmRemoveModal.classList.add('active');
     }
-    
-    // Remove patient
-    function removePatient(patientId, reason = '') {
-        const patients = getPatients();
-        const patientIndex = patients.findIndex(p => p.id === patientId);
-        
-        if (patientIndex === -1) return;
-        
-        const patient = patients[patientIndex];
-        
-        // Remove patient from array
-        patients.splice(patientIndex, 1);
-        savePatients(patients);
-        
-        // Log the action
-        const logs = getActionLogs();
-        const newLog = {
-            id: getNextLogId(),
-            patientId: patientId,
-            actionType: 'Remove Patient',
-            oldPriorityId: patient.priorityId,
-            newPriorityId: null,
-            timestamp: new Date().toISOString(),
-            notes: reason || `Patient ${patient.code} removed from waitlist`
-        };
-        
-        logs.push(newLog);
-        saveActionLogs(logs);
-        
-        // Update UI
-        renderPatients();
-        renderActionLogs();
-        
-        // Clear selected patient
-        selectedPatientId = null;
-        
-        alert(`Patient ${patient.name} (${patient.code}) has been removed from the waitlist.`);
-    }
-    
-    // Save patient notes
-    function savePatientNotes(patientId) {
-        const notesTextarea = document.getElementById('patientNotes');
-        if (!notesTextarea) return;
-        
-        const notes = notesTextarea.value.trim();
-        const patients = getPatients();
-        const patientIndex = patients.findIndex(p => p.id === patientId);
-        
-        if (patientIndex === -1) return;
-        
-        patients[patientIndex].notes = notes;
-        savePatients(patients);
-        
-        // Show confirmation
-        const saveBtn = document.getElementById('saveNotesBtn');
-        const originalText = saveBtn.innerHTML;
-        saveBtn.innerHTML = '<i class="fas fa-check"></i> Saved!';
-        saveBtn.disabled = true;
-        
-        setTimeout(() => {
-            saveBtn.innerHTML = originalText;
-            saveBtn.disabled = false;
-        }, 2000);
-    }
-    
-    // Add new patient
-    function addPatient(patientData) {
-        const patients = getPatients();
-        
-        // Check if code already exists
-        const existingPatient = patients.find(p => p.code === patientData.code.toUpperCase());
-        if (existingPatient) {
-            alert(`Patient code ${patientData.code} is already in use. Please use a different code.`);
-            return false;
-        }
-        
-        const newPatient = {
-            id: getNextPatientId(),
-            code: patientData.code.toUpperCase(),
-            name: patientData.name,
-            injuryType: patientData.injuryType,
-            painLevel: parseInt(patientData.painLevel),
-            priorityId: patientData.priorityId,
-            arrivalTime: new Date().toISOString(),
-            status: 'waiting',
-            notes: ''
-        };
-        
-        patients.push(newPatient);
-        savePatients(patients);
-        
-        // Log the action
-        const logs = getActionLogs();
-        const newLog = {
-            id: getNextLogId(),
-            patientId: newPatient.id,
-            actionType: 'Add Patient',
-            oldPriorityId: null,
-            newPriorityId: newPatient.priorityId,
-            timestamp: new Date().toISOString(),
-            notes: `New patient checked in: ${newPatient.name} (${newPatient.code})`
-        };
-        
-        logs.push(newLog);
-        saveActionLogs(logs);
-        
-        return true;
-    }
-    
-    // Clear action logs
-    function clearActionLogs() {
-        if (confirm('Are you sure you want to clear all action logs? This action cannot be undone.')) {
-            localStorage.setItem('actionLogs', JSON.stringify([]));
-            localStorage.setItem('nextLogId', '1');
-            renderActionLogs();
-            alert('All action logs have been cleared.');
+
+    async function removePatient(patientId, reason = '') {
+        try {
+            await api(`/api/patients/${patientId}`, {
+                method: 'DELETE',
+                body: JSON.stringify({ notes: reason || 'Removed from waitlist via admin dashboard' })
+            });
+
+            confirmRemoveModal.classList.remove('active');
+            document.getElementById('removeReason').value = '';
+
+            await loadPatients();
+            await loadActionLogs();
+            renderNoPatientSelected();
+
+            alert('Patient removed from waitlist.');
+        } catch (err) {
+            console.error('Error removing patient:', err);
+            alert('Error removing patient.');
         }
     }
-    
-    // Calculate priority from pain level
+
+    /* ------------ ADD PATIENT MODAL (ADMIN) ------------ */
+
     function calculatePriorityFromPain(painLevel) {
         if (painLevel >= 8) return 1; // Critical
         if (painLevel >= 5) return 2; // High
         if (painLevel >= 3) return 3; // Medium
-        return 4; // Low
+        return 4;                    // Low
     }
-    
-    // Initialize modal functionality
-    function initModals() {
-        // Add Patient Modal
-        addPatientBtn.addEventListener('click', function() {
-            addPatientModal.classList.add('active');
+
+    async function addPatientFromModal() {
+        const name = document.getElementById('modalPatientName').value.trim();
+        const code = document.getElementById('modalPatientCode').value.trim().toUpperCase();
+        const injuryType = document.getElementById('modalInjuryType').value;
+        const painLevel = parseInt(document.getElementById('modalPainLevel').value, 10);
+
+        if (!name || name.length < 2) {
+            alert('Please enter a valid patient name (minimum 2 characters).');
+            return;
+        }
+        if (!/^[A-Za-z]{3}$/.test(code)) {
+            alert('Please enter a valid 3-letter patient code (e.g., ABC).');
+            return;
+        }
+        if (!injuryType) {
+            alert('Please select an injury type.');
+            return;
+        }
+
+        try {
+            await api('/api/patients', {
+                method: 'POST',
+                body: JSON.stringify({
+                    code,
+                    name,
+                    injury_type: injuryType,
+                    pain_level: painLevel
+                })
+            });
+
+            addPatientModal.classList.remove('active');
+            await loadPatients();
+            await loadActionLogs();
+            alert(`Patient ${name} (${code}) added successfully.`);
+        } catch (err) {
+            console.error('Error adding patient:', err);
+            alert('Error adding patient.');
+        }
+    }
+
+    /* ------------ CLEAR LOGS (CLIENT-SIDE ONLY) ------------ */
+
+    function clearActionLogsClientSide() {
+        // Just clear on screen; on refresh they’ll re-load from server.
+        logs = [];
+        renderActionLogs();
+    }
+
+    /* ------------ MODALS + EVENT LISTENERS ------------ */
+
+    function initModalsAndEvents() {
+        // Add Patient
+        addPatientBtn.addEventListener('click', () => {
             addPatientForm.reset();
             modalPainLevel.value = 5;
             modalPainValue.textContent = '5';
+            addPatientModal.classList.add('active');
         });
-        
-        closeAddModal.addEventListener('click', function() {
+
+        closeAddModal.addEventListener('click', () => {
             addPatientModal.classList.remove('active');
         });
-        
-        cancelAddBtn.addEventListener('click', function() {
+
+        cancelAddBtn.addEventListener('click', () => {
             addPatientModal.classList.remove('active');
         });
-        
-        // Remove Patient Modal
-        closeRemoveModal.addEventListener('click', function() {
+
+        submitAddBtn.addEventListener('click', () => {
+            addPatientFromModal();
+        });
+
+        modalPainLevel.addEventListener('input', () => {
+            modalPainValue.textContent = modalPainLevel.value;
+        });
+
+        // Remove Patient modal
+        closeRemoveModal.addEventListener('click', () => {
             confirmRemoveModal.classList.remove('active');
         });
-        
-        cancelRemoveBtn.addEventListener('click', function() {
+
+        cancelRemoveBtn.addEventListener('click', () => {
             confirmRemoveModal.classList.remove('active');
         });
-        
-        confirmRemoveBtn.addEventListener('click', function() {
-            const patientId = parseInt(confirmRemoveModal.dataset.patientId);
+
+        confirmRemoveBtn.addEventListener('click', () => {
+            const id = parseInt(confirmRemoveModal.dataset.patientId || '0', 10);
             const reason = document.getElementById('removeReason').value.trim();
-            
-            if (patientId) {
-                removePatient(patientId, reason);
-                confirmRemoveModal.classList.remove('active');
-                document.getElementById('removeReason').value = '';
-            }
+            if (id) removePatient(id, reason);
         });
-        
-        // Submit Add Patient Form
-        submitAddBtn.addEventListener('click', function() {
-            const formData = {
-                name: document.getElementById('modalPatientName').value.trim(),
-                code: document.getElementById('modalPatientCode').value.trim(),
-                injuryType: document.getElementById('modalInjuryType').value,
-                painLevel: parseInt(document.getElementById('modalPainLevel').value),
-                priorityId: calculatePriorityFromPain(parseInt(document.getElementById('modalPainLevel').value))
-            };
-            
-            // Validation
-            if (!formData.name || formData.name.length < 2) {
-                alert('Please enter a valid patient name (minimum 2 characters)');
-                return;
-            }
-            
-            if (!formData.code.match(/^[A-Za-z]{3}$/)) {
-                alert('Please enter a valid 3-letter patient code (e.g., ABC)');
-                return;
-            }
-            
-            if (!formData.injuryType) {
-                alert('Please select an injury type');
-                return;
-            }
-            
-            if (addPatient(formData)) {
-                addPatientModal.classList.remove('active');
-                renderPatients();
-                renderActionLogs();
-                alert(`Patient ${formData.name} (${formData.code.toUpperCase()}) added successfully!`);
-            }
-        });
-        
-        // Pain level slider in modal
-        modalPainLevel.addEventListener('input', function() {
-            modalPainValue.textContent = this.value;
-        });
-        
-        // Close modals when clicking outside
-        window.addEventListener('click', function(e) {
-            if (e.target === addPatientModal) {
-                addPatientModal.classList.remove('active');
-            }
-            if (e.target === confirmRemoveModal) {
-                confirmRemoveModal.classList.remove('active');
-            }
-        });
-    }
-    
-    // Initialize other event listeners
-    function initEventListeners() {
+
         // Refresh button
-        refreshBtn.addEventListener('click', function() {
-            renderPatients();
-            renderActionLogs();
-            
-            // Show refresh feedback
-            const originalText = refreshBtn.innerHTML;
-            refreshBtn.innerHTML = '<i class="fas fa-check"></i> Refreshed!';
+        refreshBtn.addEventListener('click', async () => {
+            const original = refreshBtn.innerHTML;
             refreshBtn.disabled = true;
-            
-            setTimeout(() => {
-                refreshBtn.innerHTML = originalText;
-                refreshBtn.disabled = false;
-            }, 2000);
+            refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+
+            await Promise.all([loadPatients(), loadActionLogs()]);
+
+            refreshBtn.innerHTML = original;
+            refreshBtn.disabled = false;
         });
-        
-        // Clear logs button
-        clearLogBtn.addEventListener('click', clearActionLogs);
-        
-        // Keyboard shortcuts
-        document.addEventListener('keydown', function(e) {
-            // Ctrl+R to refresh
-            if (e.ctrlKey && e.key === 'r') {
-                e.preventDefault();
-                refreshBtn.click();
+
+        // Clear log (client side)
+        clearLogBtn.addEventListener('click', () => {
+            if (confirm('Clear the action log from the screen? (Server history will remain.)')) {
+                clearActionLogsClientSide();
             }
-            
-            // Delete key to remove selected patient
+        });
+
+        // Close modals when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === addPatientModal) addPatientModal.classList.remove('active');
+            if (e.target === confirmRemoveModal) confirmRemoveModal.classList.remove('active');
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
             if (e.key === 'Delete' && selectedPatientId) {
                 showRemoveConfirmation(selectedPatientId);
             }
         });
     }
-    
-    // Initialize the application
-    function init() {
-        initModals();
-        initEventListeners();
-        renderPatients();
-        renderActionLogs();
-        
-        // Select first patient by default if exists
-        const patients = getPatients();
+
+    /* ------------ INIT ------------ */
+
+    async function init() {
+        initModalsAndEvents();
+        await Promise.all([loadPatients(), loadActionLogs()]);
+
+        // Auto-select first patient if any
         if (patients.length > 0) {
-            selectPatient(patients[0].id);
+            selectPatient(patients[0].patient_id);
+        } else {
+            renderNoPatientSelected();
         }
-        
-        console.log('Admin dashboard initialized successfully');
+
+        console.log('Admin dashboard initialized with backend API');
     }
-    
-    // Start the application
+
     init();
 });
